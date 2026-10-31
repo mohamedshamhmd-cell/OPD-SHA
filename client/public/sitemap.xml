@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Home / Dashboard -->
+  <url>
+    <loc>https://mohamedshamhmd-cell.github.io/OPD-SHA/</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mohamedshamhmd-cell.github.io/OPD-SHA/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://mohamedshamhmd-cell.github.io/OPD-SHA/"/>
+  </url>
+
+  <!-- Patient Registration -->
+  <url>
+    <loc>https://mohamedshamhmd-cell.github.io/OPD-SHA/register</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Patient Sorting -->
+  <url>
+    <loc>https://mohamedshamhmd-cell.github.io/OPD-SHA/sorting</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Staff Dashboard -->
+  <url>
+    <loc>https://mohamedshamhmd-cell.github.io/OPD-SHA/staff</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Doctors List -->
+  <url>
+    <loc>https://mohamedshamhmd-cell.github.io/OPD-SHA/doctors</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+</urlset>
