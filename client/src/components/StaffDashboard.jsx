@@ -14,7 +14,8 @@ import {
   ArrowRight,
   Filter,
   Search,
-  Stethoscope
+  Stethoscope,
+  ArrowUpDown
 } from 'lucide-react';
 import { 
   fetchStaffQueues, 
@@ -28,7 +29,8 @@ import { playHospitalChime, announcePatientCalling, announceNoWaitingPatients, s
 export default function StaffDashboard({ 
   currentLang = 'en',
   t = {},
-  onDataChanged = () => {}
+  onDataChanged = () => {},
+  onTabChange = () => {}
 }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -214,6 +216,30 @@ export default function StaffDashboard({
             <span>{feedback}</span>
           </div>
         )}
+      </div>
+
+      {/* PATIENT SORTING QUICK SHORTCUT CALLOUT */}
+      <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-blue-900 text-white rounded-2xl p-4 sm:p-5 shadow-sm border border-indigo-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500/30 flex items-center justify-center shrink-0">
+            <ArrowUpDown className="w-5 h-5 text-cyan-300" />
+          </div>
+          <div>
+            <h4 className="text-sm font-black text-white">
+              {t.sorting?.title || 'Patient Prioritization & Sorting Console'}
+            </h4>
+            <p className="text-xs text-indigo-200 mt-0.5">
+              Prioritize elderly (60+) & emergencies with automated nurse escort voice announcements.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => onTabChange('sorting')}
+          className="px-4 py-2 bg-white text-indigo-900 hover:bg-indigo-50 font-bold rounded-xl text-xs sm:text-sm flex items-center gap-2 shrink-0 shadow-sm transition-all"
+        >
+          <span>Open Patient Sorting</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
       </div>
 
       {/* STATS OVERVIEW CARDS */}

@@ -103,8 +103,11 @@ export default function RegistrationForm({
       case 'mr':
         msg = 'ओपीडी साथी रुग्णालयात आपले स्वागत आहे. त्वरित वॉक-इन टोकन घ्या किंवा डॉक्टरांचा वेळ स्लॉट बुक करा. आणीबाणीसाठी लाल स्विच चालू करा.';
         break;
+      case 'ar':
+        msg = 'مرحباً بكم في مستشفى OPD SHA. اختر تذكرة دخول فورية أو احجز موعداً مسبقاً مع الطبيب. قم بتفعيل زر الطوارئ لحالات الحوادث والإنعاش الفوري.';
+        break;
       default:
-        msg = 'Welcome to OPD SHAATHI Hospital. Choose instant walk-in token or schedule a doctor appointment slot. Turn ON emergency switch for immediate trauma resuscitation.';
+        msg = 'Welcome to OPD SHA Hospital. Choose instant walk-in token or schedule a doctor appointment slot. Turn ON emergency switch for immediate trauma resuscitation.';
         break;
     }
     speakText(msg, preferredLang);
@@ -164,10 +167,10 @@ export default function RegistrationForm({
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold backdrop-blur tracking-wide">
               <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
-              <span>OPD SHAATHI • Accessible Smart Healthcare</span>
+              <span>OPD SHA • Accessible Smart Healthcare</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-2">
-              {t.form?.title || 'OPD SHAATHI • Accessible Registration & Appointments'}
+              {t.form?.title || 'OPD SHA • Accessible Registration & Appointments'}
             </h2>
             <p className="text-indigo-100 text-xs sm:text-sm mt-1 max-w-xl">
               {t.form?.subtitle || 'Fast, minimal-step walk-in token or scheduled doctor appointment.'}

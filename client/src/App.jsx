@@ -5,6 +5,7 @@ import DoctorsList from './components/DoctorsList';
 import OPDSlip from './components/OPDSlip';
 import QueueTracker from './components/QueueTracker';
 import StaffDashboard from './components/StaffDashboard';
+import PatientSorting from './components/PatientSorting';
 import NearbyHospitalsMap from './components/NearbyHospitalsMap';
 import { translations } from './translations';
 import { fetchDepartments, registerPatient, fetchSlip } from './services/api';
@@ -25,7 +26,13 @@ import {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('register');
-  const [currentLang, setCurrentLang] = useState('en');
+  const [currentLang, setCurrentLang] = useState(() => {
+    try {
+      return localStorage.getItem('hospital_lang') || 'en';
+    } catch {
+      return 'en';
+    }
+  });
   const [fontSizeLevel, setFontSizeLevel] = useState(1); // default large for hospital readability
   const [highContrast, setHighContrast] = useState(false);
   const [departments, setDepartments] = useState([]);
@@ -64,6 +71,20 @@ export default function App() {
     loadDepartments();
   }, []);
 
+  // Sync language selection, persistence and RTL / LTR layout
+  useEffect(() => {
+    try {
+      localStorage.setItem('hospital_lang', currentLang);
+    } catch {}
+    if (currentLang === 'ar') {
+      document.documentElement.setAttribute('dir', 'rtl');
+      document.documentElement.setAttribute('lang', 'ar');
+    } else {
+      document.documentElement.setAttribute('dir', 'ltr');
+      document.documentElement.setAttribute('lang', currentLang);
+    }
+  }, [currentLang]);
+
   // Handle successful patient registration
   const handleRegistered = async (formData) => {
     const res = await registerPatient(formData);
@@ -85,6 +106,7 @@ export default function App() {
         let announcement = '';
         if (isEmer) {
           switch (currentLang) {
+            case 'ar': announcement = `تم تأكيد تسجيل الطوارئ! رقم التذكرة ${res.token}. يرجى التوجه فوراً إلى غرفة الطوارئ والحوادث 1.`; break;
             case 'ta': announcement = `அவசர பதிவு வெற்றிகரமானது! டோக்கன் எண் ${res.token}. ட்ராமா பே 1-க்கு உடனே செல்லவும்.`; break;
             case 'hi': announcement = `आपातकालीन पंजीकरण सफल! टोकन संख्या ${res.token}। कृपया तुरंत ट्रॉमा बे 1 पर जाएँ।`; break;
             case 'te': announcement = `అత్యవసర రిజిస్ట్రేషన్ పూర్తయింది! టోకెన్ సంఖ్య ${res.token}. వెంటనే ట్రామా బే 1కి వెళ్లండి.`; break;
@@ -96,6 +118,7 @@ export default function App() {
           }
         } else if (res.patient.appointment_type === 'APPOINTMENT') {
           switch (currentLang) {
+            case 'ar': announcement = `تم تأكيد حجز الموعد بنجاح! رقم تذكرتك هو ${res.token}.`; break;
             case 'ta': announcement = `முன்பதிவு உறுதிசெய்யப்பட்டது! டோக்கன் எண் ${res.token}.`; break;
             case 'hi': announcement = `टोकन अपॉइंटमेंट पुष्ट हुआ! टोकन संख्या ${res.token}।`; break;
             case 'te': announcement = `అపాయింట్‌మెంట్ నిర్ధారించబడింది! మీ టోకెన్ సంఖ్య ${res.token}.`; break;
@@ -107,6 +130,7 @@ export default function App() {
           }
         } else {
           switch (currentLang) {
+            case 'ar': announcement = `تم تسجيل المريض بنجاح! رقم تذكرتك هو ${res.token}.`; break;
             case 'ta': announcement = `பதிவு முடிந்தது! உங்கள் டோக்கன் எண் ${res.token}.`; break;
             case 'hi': announcement = `पंजीकरण सफल हुआ! आपकी टोकन संख्या ${res.token} है।`; break;
             case 'te': announcement = `రిజిస్ట్రేషన్ విజయవంతమైంది! మీ టోకెన్ సంఖ్య ${res.token}.`; break;
@@ -141,6 +165,7 @@ export default function App() {
     setActiveTab('register');
     let msg = '';
     switch (currentLang) {
+      case 'ar': msg = 'تم تفعيل خدمة طوارئ الحوادث. يرجى التوجه فوراً إلى الطابق الأرضي، غرفة الطوارئ 1.'; break;
       case 'ta': msg = 'அவசர சிகிச்சை சேவை இயக்கப்பட்டது. ட்ராமா பே 1-க்கு உடனே செல்லவும்.'; break;
       case 'hi': msg = 'आपातकालीन ट्राइएज सेवा सक्रिय की गई। कृपया सीधे भू-तल ट्रॉमा बे 1 पर संपर्क करें।'; break;
       case 'te': msg = 'అత్యవసర ట్రామా సేవ ప్రారంభించబడింది. వెంటనే గ్రౌండ్ ఫ్లోర్ ట్రామా బే 1కి వెళ్లండి.'; break;
@@ -228,6 +253,16 @@ export default function App() {
             currentLang={currentLang}
             t={t}
             onDataChanged={loadDepartments}
+            onTabChange={setActiveTab}
+          />
+        )}
+
+        {/* TAB 7: PATIENT SORTING */}
+        {activeTab === 'sorting' && (
+          <PatientSorting
+            currentLang={currentLang}
+            t={t}
+            onDataChanged={loadDepartments}
           />
         )}
       </main>
@@ -239,10 +274,10 @@ export default function App() {
             <span className="text-2xl">🏥</span>
             <div>
               <p className="text-white font-bold text-sm">
-                OPD SHAATHI Hospital (ओपीडी साथी)
+                OPD SHA Hospital
               </p>
               <p className="text-slate-400 text-xs mt-0.5">
-                Accessible OPD Registration, Doctor Appointments & Smart Navigation Companion
+                Accessible OPD Registration, Doctor Appointments, Patient Sorting & Navigation Companion
               </p>
             </div>
           </div>

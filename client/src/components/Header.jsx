@@ -14,7 +14,8 @@ import {
   Languages,
   Sparkles,
   Stethoscope,
-  MapPin
+  MapPin,
+  ArrowUpDown
 } from 'lucide-react';
 import { subscribeSpeechState, stopSpeaking } from '../services/speech';
 
@@ -49,7 +50,7 @@ export default function Header({
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="font-semibold text-slate-200">
-              {t.hospitalSub || 'OPD SAATHI • Smart Government Hospital System • Ayushman Bharat ABDM'}
+              {t.hospitalSub || 'OPD SHA • Smart Government Hospital System • Ayushman Bharat ABDM'}
             </span>
           </div>
 
@@ -67,7 +68,7 @@ export default function Header({
               </button>
             )}
 
-            {/* Language Selector (8 Languages) */}
+            {/* Language Selector (Arabic + 8 Indian Languages) */}
             <div className="flex items-center gap-1.5 bg-slate-800 p-1 rounded-xl border border-slate-700">
               <Languages className="w-3.5 h-3.5 text-indigo-400 ml-1.5 shrink-0" />
               <select
@@ -77,6 +78,7 @@ export default function Header({
                 aria-label="Select Language"
               >
                 <option value="en" className="bg-slate-900 text-white">English (English)</option>
+                <option value="ar" className="bg-slate-900 text-white">العربية (Arabic)</option>
                 <option value="hi" className="bg-slate-900 text-white">हिन्दी (Hindi)</option>
                 <option value="ta" className="bg-slate-900 text-white">தமிழ் (Tamil)</option>
                 <option value="te" className="bg-slate-900 text-white">తెలుగు (Telugu)</option>
@@ -150,7 +152,7 @@ export default function Header({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white leading-tight">
-                {t.hospitalName || 'OPD SHAATHI Hospital'}
+                {t.hospitalName || 'OPD SHA Hospital'}
               </h1>
               <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
                 AIIMS MODEL
@@ -167,6 +169,7 @@ export default function Header({
           {[
             { id: 'register', label: t.tabs?.register || 'OPD Registration', icon: FileText },
             { id: 'doctors', label: t.tabs?.doctors || 'Doctors Available', icon: Stethoscope },
+            { id: 'sorting', label: t.tabs?.sorting || 'Patient Sorting', icon: ArrowUpDown },
             { id: 'slip', label: t.tabs?.slip || 'My OPD Slip', icon: Sparkles, badge: hasSlip },
             { id: 'track', label: t.tabs?.track || 'Track Queue & Map', icon: Clock },
             { id: 'nearby', label: t.tabs?.nearby || 'Nearby Hospitals', icon: MapPin },

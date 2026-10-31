@@ -80,6 +80,25 @@ body {
   border: 2px solid #facc15 !important;
 }
 
+/* RTL (Right to Left) Arabic Support */
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Cairo", "Noto Sans Arabic", Tahoma, Arial, sans-serif;
+}
+
+[dir="rtl"] .rtl-mirror {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left;
+}
+
 /* Animations */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }

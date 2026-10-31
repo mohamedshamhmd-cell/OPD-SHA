@@ -305,19 +305,19 @@ router.post('/register', async (req, res) => {
       ? `EMER-${String(nextNum).padStart(3, '0')}`
       : `${prefix}-${nextNum}`;
 
-    // Priority calculations
-    let priorityScore = 0;
+    // Priority calculations (Emergency always highest: 900-1000, Senior citizen: 500, Normal: 100)
+    let priorityScore = 100;
     let triageLevel = 'NORMAL';
     const parsedAge = parseInt(age, 10);
 
     if (is_emergency) {
-      priorityScore = 100;
+      priorityScore = parsedAge >= 60 ? 1000 : 900;
       triageLevel = 'CRITICAL';
     } else if (parsedAge >= 60) {
-      priorityScore = 15;
+      priorityScore = 500;
       triageLevel = 'SENIOR';
     } else if (parsedAge <= 6) {
-      priorityScore = 10;
+      priorityScore = 200;
       triageLevel = 'CHILD';
     }
 
@@ -768,14 +768,19 @@ router.get('/staff/queues', async (req, res) => {
     // Summary stats
     const totalPatients = database.query("SELECT COUNT(*) AS count FROM patients;")[0].count;
     const waitingPatients = database.query("SELECT COUNT(*) AS count FROM patients WHERE status = 'WAITING';")[0].count;
-    const activePatients = database.query("SELECT COUNT(*) AS count FROM patients WHERE status = 'CALLED' OR status = 'IN_CONSULTATION';")[0].count;
+    const activePatients = database.query("SELECT COUNT(*) AS count FROM patients WHERE status IN ('CALLED', 'IN_CONSULTATION');")[0].count;
     const completedPatients = database.query("SELECT COUNT(*) AS count FROM patients WHERE status = 'COMPLETED';")[0].count;
     const emergencyPatients = database.query("SELECT COUNT(*) AS count FROM patients WHERE is_emergency = 1 AND status != 'COMPLETED';")[0].count;
+    const elderlyPatients = database.query("SELECT COUNT(*) AS count FROM patients WHERE age >= 60 AND is_emergency = 0 AND status != 'COMPLETED';")[0].count;
+    const assignedDoctorPatients = database.query("SELECT COUNT(*) AS count FROM patients WHERE doctor_id IS NOT NULL AND status != 'COMPLETED';")[0].count;
+    const awaitingCollectionPatients = database.query("SELECT COUNT(*) AS count FROM patients WHERE assigned_nurse IS NOT NULL AND status IN ('NURSE_ASSIGNED', 'ANNOUNCED');")[0].count;
+    const inConsultationPatients = database.query("SELECT COUNT(*) AS count FROM patients WHERE status = 'IN_CONSULTATION';")[0].count;
 
-    // All patients list with department and doctor info
+    // All patients list with department, doctor and personnel assignment info
     const allPatients = database.query(`
-      SELECT p.*, d.name AS dept_name, d.code AS dept_code, d.room_number, d.color AS dept_color, f.name AS floor_name,
-             doc.name AS doctor_name, doc.qualification AS doctor_qualification, doc.room_number AS doctor_room
+      SELECT p.*, d.name AS dept_name, d.code AS dept_code, d.room_number AS default_dept_room, d.color AS dept_color, f.name AS floor_name,
+             doc.name AS doctor_name, doc.qualification AS doctor_qualification,
+             COALESCE(p.doctor_room, doc.room_number, d.room_number) AS doctor_room
       FROM patients p
       JOIN departments d ON p.department_id = d.id
       JOIN floors f ON d.floor_id = f.id
@@ -784,9 +789,10 @@ router.get('/staff/queues', async (req, res) => {
         p.is_emergency DESC,
         CASE p.status
           WHEN 'CALLED' THEN 1
-          WHEN 'IN_CONSULTATION' THEN 2
-          WHEN 'WAITING' THEN 3
-          ELSE 4
+          WHEN 'ANNOUNCED' THEN 2
+          WHEN 'IN_CONSULTATION' THEN 3
+          WHEN 'WAITING' THEN 4
+          ELSE 5
         END,
         p.priority_score DESC,
         p.created_at ASC;
@@ -796,7 +802,7 @@ router.get('/staff/queues', async (req, res) => {
     const departments = database.query(`
       SELECT d.*, f.name AS floor_name, f.level AS floor_level,
         COUNT(CASE WHEN p.status = 'WAITING' THEN 1 END) AS waiting_count,
-        COUNT(CASE WHEN p.status = 'CALLED' OR p.status = 'IN_CONSULTATION' THEN 1 END) AS active_count,
+        COUNT(CASE WHEN p.status IN ('CALLED', 'IN_CONSULTATION', 'ANNOUNCED') THEN 1 END) AS active_count,
         COUNT(CASE WHEN p.status = 'COMPLETED' THEN 1 END) AS completed_count
       FROM departments d
       JOIN floors f ON d.floor_id = f.id
@@ -824,6 +830,10 @@ router.get('/staff/queues', async (req, res) => {
         active: activePatients,
         completed: completedPatients,
         emergency: emergencyPatients,
+        elderly: elderlyPatients,
+        assignedDoctor: assignedDoctorPatients,
+        awaitingCollection: awaitingCollectionPatients,
+        inConsultation: inConsultationPatients,
         hospitalCapacity: Math.min(100, Math.round(((waitingPatients + activePatients) / 30) * 100))
       },
       departments: enrichedDepts,
@@ -879,6 +889,51 @@ router.patch('/patients/:id/status', async (req, res) => {
     res.json({ success: true, message: 'Patient status updated successfully', patient: updated });
   } catch (error) {
     console.error('Error in PATCH /patients/:id/status:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 11b. PATCH /api/patients/:id/assign (Assign Doctor, Room, Nurse, Announcement Status)
+router.patch('/patients/:id/assign', async (req, res) => {
+  try {
+    const database = await db();
+    const patientId = req.params.id;
+    const { doctor_id, doctor_room, assigned_nurse, status, announcement_status } = req.body;
+
+    const patient = database.get('SELECT * FROM patients WHERE id = ?;', [patientId]);
+    if (!patient) {
+      return res.status(404).json({ success: false, error: 'Patient not found' });
+    }
+
+    database.run(`
+      UPDATE patients
+      SET doctor_id = COALESCE(?, doctor_id),
+          doctor_room = COALESCE(?, doctor_room),
+          assigned_nurse = COALESCE(?, assigned_nurse),
+          status = COALESCE(?, status),
+          announcement_status = COALESCE(?, announcement_status)
+      WHERE id = ?;
+    `, [
+      doctor_id !== undefined ? doctor_id : null,
+      doctor_room !== undefined ? doctor_room : null,
+      assigned_nurse !== undefined ? assigned_nurse : null,
+      status !== undefined ? status : null,
+      announcement_status !== undefined ? announcement_status : null,
+      patientId
+    ]);
+
+    const updated = database.get(`
+      SELECT p.*, d.name AS dept_name, d.color AS dept_color, doc.name AS doctor_name,
+             COALESCE(p.doctor_room, doc.room_number, d.room_number) AS doctor_room
+      FROM patients p
+      JOIN departments d ON p.department_id = d.id
+      LEFT JOIN doctors doc ON p.doctor_id = doc.id
+      WHERE p.id = ?;
+    `, [patientId]);
+
+    res.json({ success: true, message: 'Patient assignment saved successfully', patient: updated });
+  } catch (error) {
+    console.error('Error in PATCH /patients/:id/assign:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -984,7 +1039,7 @@ router.post('/simulate/walkins', async (req, res) => {
 router.post('/reset', async (req, res) => {
   try {
     await resetDatabase();
-    res.json({ success: true, message: 'OPD SHAATHI Hospital database reset to initial seed state.' });
+    res.json({ success: true, message: 'OPD SHA Hospital database reset to initial seed state.' });
   } catch (error) {
     console.error('Error in POST /reset:', error);
     res.status(500).json({ success: false, error: error.message });

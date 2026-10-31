@@ -1,11 +1,11 @@
 // Multilingual dictionary for 8 languages: English, Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Marathi
-// OPD SHAATHI Hospital - Smart Government Hospital System
+// OPD SHA Hospital - Smart Government Hospital System
 
 export const translations = {
   // 1. ENGLISH
   en: {
-    hospitalName: 'OPD SHAATHI Hospital',
-    hospitalSub: 'OPD SAATHI • Smart Government Hospital System • Ayushman Bharat ABDM',
+    hospitalName: 'OPD SHA Hospital',
+    hospitalSub: 'OPD SHA • Smart Government Hospital System • Ayushman Bharat ABDM',
     emergencyNotice: '24x7 Emergency & Trauma Care Available at Ground Floor East Wing',
     tabs: {
       register: 'OPD Registration',
@@ -13,6 +13,7 @@ export const translations = {
       slip: 'My OPD Slip',
       track: 'Track Queue & Map',
       nearby: 'Nearby Hospitals',
+      sorting: 'Patient Sorting',
       staff: 'Staff Dashboard'
     },
     accessibility: {
@@ -25,7 +26,7 @@ export const translations = {
       sos: '🚨 Emergency SOS'
     },
     form: {
-      title: 'OPD SHAATHI • Accessible Registration & Appointments',
+      title: 'OPD SHA • Accessible Registration & Appointments',
       subtitle: 'Fast, minimal-step walk-in token or scheduled doctor appointment.',
       listenInstructions: '🔊 Listen to Instructions',
       tokenModeLabel: 'Select Registration Type:',
@@ -75,7 +76,7 @@ export const translations = {
       activeQueue: 'Patients in Line'
     },
     slip: {
-      title: 'OPD SHAATHI HOSPITAL • OPD REGISTRATION SLIP',
+      title: 'OPD SHA HOSPITAL • OPD REGISTRATION SLIP',
       ministry: 'Ministry of Health & Family Welfare • National Smart Hospital Initiative',
       tokenLabel: 'TOKEN NUMBER',
       dateLabel: 'Registration Time',
@@ -169,13 +170,101 @@ export const translations = {
       resetData: '🔄 Reset Seed Data',
       filterDept: 'Filter Department:',
       all: 'All Departments'
+    },
+    sorting: {
+      title: 'Patient Prioritization & Sorting Console',
+      subtitle: 'Automated real-time queue sorting based on emergency urgency and age (60+ priority), with nurse escort voice dispatch.',
+      stats: {
+        totalWaiting: 'Total Waiting',
+        emergency: 'Critical Emergency',
+        elderly: 'Senior Citizen (60+)',
+        assignedDoctor: 'Doctor Assigned',
+        awaitingCollection: 'Awaiting Nurse Escort',
+        inConsultation: 'In Consultation'
+      },
+      filters: {
+        all: 'All Patients',
+        emergencyOnly: '🚨 Emergency Only',
+        elderlyOnly: '👴 Elderly (60+)',
+        normalOnly: 'Standard Priority',
+        searchPlaceholder: 'Search by Patient ID or Name...',
+        statusFilter: 'Status:',
+        allStatuses: 'All Statuses'
+      },
+      columns: {
+        priority: 'Priority #',
+        patientId: 'Patient ID',
+        patientName: 'Patient Name',
+        age: 'Age',
+        emergency: 'Emergency Status',
+        category: 'Priority Category',
+        doctor: 'Assigned Doctor',
+        room: 'Doctor Room',
+        waitTime: 'Waiting Time',
+        nurse: 'Assigned Nurse / Caretaker',
+        action: 'Action'
+      },
+      categories: {
+        emergencySenior: '🚨 Emergency + Senior (60+)',
+        emergency: '🚨 Critical Emergency',
+        elderly: '👴 Senior Citizen (60+)',
+        normal: 'Standard Priority'
+      },
+      statuses: {
+        waiting: 'Waiting',
+        priorityAssigned: 'Priority Evaluated',
+        doctorAssigned: 'Doctor Assigned',
+        nurseAssigned: 'Nurse Assigned',
+        announcementPending: 'Announcement Pending',
+        announced: 'Announced (Calling Nurse)',
+        patientCollected: 'Patient Collected',
+        inConsultation: 'In Consultation',
+        completed: 'Completed',
+        cancelled: 'Cancelled'
+      },
+      actions: {
+        assign: 'Assign Nurse / Doctor',
+        announceAgain: 'Announce Again',
+        collect: 'Mark Collected',
+        startConsultation: 'Start Consultation',
+        complete: 'Mark Completed',
+        viewDetails: 'View Details',
+        refresh: 'Refresh List',
+        simulatePatient: '⚡ Add Test Patient'
+      },
+      modals: {
+        assignTitle: 'Assign Doctor & Escort Personnel',
+        assignSubtitle: 'Select consulting doctor, room, and assigned nurse/caretaker for this patient.',
+        selectDoctor: 'Select Consulting Doctor',
+        roomNumber: 'Consultation Room Number',
+        selectNurse: 'Assign Nurse / Caretaker',
+        nurseCustom: 'Or type custom nurse / caretaker name...',
+        autoAnnounceCheckbox: 'Broadcast voice announcement to nurse immediately',
+        cancel: 'Cancel',
+        saveAndAnnounce: 'Confirm Assignment & Announce',
+        detailsTitle: 'Patient Clinical & Queue Dossier',
+        close: 'Close'
+      },
+      voice: {
+        mute: 'Mute Voice',
+        unmute: 'Unmute Voice',
+        statusPending: 'Pending',
+        statusAnnounced: 'Announced',
+        statusCompleted: 'Completed',
+        historyTitle: 'Voice Announcement History',
+        noHistory: 'No announcements recorded yet.',
+        voiceWarning: '⚠️ No Arabic voice detected in browser. Please install an Arabic voice pack in your system or try a supported browser.',
+        voiceReady: 'Voice System Active',
+        retryVoice: 'Retry Voice Check'
+      }
     }
   },
 
+
   // 2. HINDI (हिन्दी)
   hi: {
-    hospitalName: 'ओपीडी साथी अस्पताल (OPD SHAATHI)',
-    hospitalSub: 'ओपीडी साथी • सुलभ सरकारी अस्पताल प्रबंधन • आयुष्मान भारत डिजिटल मिशन',
+    hospitalName: 'ओपीडी शा (OPD SHA) अस्पताल (OPD SHA)',
+    hospitalSub: 'ओपीडी शा (OPD SHA) • सुलभ सरकारी अस्पताल प्रबंधन • आयुष्मान भारत डिजिटल मिशन',
     emergencyNotice: '24x7 आपातकालीन एवं ट्रॉमा सेवा भू-तल पूर्व विंग में उपलब्ध है',
     tabs: {
       register: 'ओपीडी पंजीकरण व अपॉइंटमेंट',
@@ -195,7 +284,7 @@ export const translations = {
       sos: '🚨 आपातकालीन SOS'
     },
     form: {
-      title: 'ओपीडी साथी • सुलभ पंजीकरण एवं टोकन अपॉइंटमेंट',
+      title: 'ओपीडी शा (OPD SHA) • सुलभ पंजीकरण एवं टोकन अपॉइंटमेंट',
       subtitle: 'तत्काल वॉक-इन टोकन लें या अपनी सुविधानुसार समय स्लॉट बुक करें।',
       listenInstructions: '🔊 निर्देश सुनें',
       tokenModeLabel: 'पंजीकरण का प्रकार चुनें:',
@@ -245,7 +334,7 @@ export const translations = {
       activeQueue: 'कतार में मरीज'
     },
     slip: {
-      title: 'ओपीडी साथी अस्पताल • ओपीडी पंजीकरण पर्ची',
+      title: 'ओपीडी शा (OPD SHA) अस्पताल • ओपीडी पंजीकरण पर्ची',
       ministry: 'स्वास्थ्य एवं परिवार कल्याण मंत्रालय • राष्ट्रीय स्मार्ट अस्पताल पहल',
       tokenLabel: 'टोकन संख्या',
       dateLabel: 'पंजीकरण समय',
@@ -344,8 +433,8 @@ export const translations = {
 
   // 3. TAMIL (தமிழ்)
   ta: {
-    hospitalName: 'OPD சாதி அரசு மருத்துவமனை (OPD SHAATHI)',
-    hospitalSub: 'OPD SAATHI • அரசு மருத்துவமனை ஸ்மார்ட் வரிசை & குரல் வழிசெலுத்தல் இயக்கம்',
+    hospitalName: 'OPD சாதி அரசு மருத்துவமனை (OPD SHA)',
+    hospitalSub: 'OPD SHA • அரசு மருத்துவமனை ஸ்மார்ட் வரிசை & குரல் வழிசெலுத்தல் இயக்கம்',
     emergencyNotice: '24x7 அவசர சிகிச்சை பிரிவு தரை தளம் கிழக்கு பகுதியில் இயங்குகிறது',
     tabs: {
       register: 'OPD பதிவு & முன்முதிர்வு',
@@ -514,8 +603,8 @@ export const translations = {
 
   // 4. TELUGU (తెలుగు)
   te: {
-    hospitalName: 'ఓపీడీ సాథీ ప్రభుత్వ ఆసుపత్రి (OPD SHAATHI)',
-    hospitalSub: 'OPD SAATHI • స్మార్ట్ ప్రభుత్వ ఆసుపత్రి క్యూ మరియు నావిగేషన్ వ్యవస్థ',
+    hospitalName: 'ఓపీడీ సాథీ ప్రభుత్వ ఆసుపత్రి (OPD SHA)',
+    hospitalSub: 'OPD SHA • స్మార్ట్ ప్రభుత్వ ఆసుపత్రి క్యూ మరియు నావిగేషన్ వ్యవస్థ',
     emergencyNotice: '24x7 ఎమర్జెన్సీ మరియు ట్రామా కేర్ గ్రౌండ్ ఫ్లోర్ ఈస్ట్ వింగ్ లో అందుబాటులో ఉంది',
     tabs: {
       register: 'ఓపీడీ రిజిస్ట్రేషన్',
@@ -684,8 +773,8 @@ export const translations = {
 
   // 5. KANNADA (ಕನ್ನಡ)
   kn: {
-    hospitalName: 'ಒಪಿಡಿ ಸಾಥಿ ಸರ್ಕಾರಿ ಆಸ್ಪತ್ರೆ (OPD SHAATHI)',
-    hospitalSub: 'OPD SAATHI • ಸ್ಮಾರ್ಟ್ ಸರ್ಕಾರಿ ಆಸ್ಪತ್ರೆ ಸರತಿ ಸಾಲು ಮತ್ತು ಸಂಚಾರ ವ್ಯವಸ್ಥೆ',
+    hospitalName: 'ಒಪಿಡಿ ಸಾಥಿ ಸರ್ಕಾರಿ ಆಸ್ಪತ್ರೆ (OPD SHA)',
+    hospitalSub: 'OPD SHA • ಸ್ಮಾರ್ಟ್ ಸರ್ಕಾರಿ ಆಸ್ಪತ್ರೆ ಸರತಿ ಸಾಲು ಮತ್ತು ಸಂಚಾರ ವ್ಯವಸ್ಥೆ',
     emergencyNotice: '24x7 ತುರ್ತು ಮತ್ತು ಟ್ರಾಮಾ ಚಿಕಿತ್ಸೆ ನೆಲಮಹಡಿ ಪೂರ್ವ ವಿಭಾಗದಲ್ಲಿ ಲಭ್ಯವಿದೆ',
     tabs: {
       register: 'ಒಪಿಡಿ ನೋಂದಣಿ',
@@ -854,8 +943,8 @@ export const translations = {
 
   // 6. MALAYALAM (മലയാളം)
   ml: {
-    hospitalName: 'ഒപിഡി സാഥി സർക്കാർ ആശുപത്രി (OPD SHAATHI)',
-    hospitalSub: 'OPD SAATHI • സ്മാർട്ട് സർക്കാർ ആശുപത്രി ക്യൂ മാനേജ്‌മെന്റ് സിസ്റ്റം',
+    hospitalName: 'ഒപിഡി സാഥി സർക്കാർ ആശുപത്രി (OPD SHA)',
+    hospitalSub: 'OPD SHA • സ്മാർട്ട് സർക്കാർ ആശുപത്രി ക്യൂ മാനേജ്‌മെന്റ് സിസ്റ്റം',
     emergencyNotice: '24x7 അത്യാഹിത വിഭാഗവും ട്രോമ കെയറും ഗ്രൗണ്ട് ഫ്ലോർ ഈസ്റ്റ് വിംഗിൽ ലഭ്യമാണ്',
     tabs: {
       register: 'ഒപിഡി രജിസ്ട്രേഷൻ',
@@ -1024,8 +1113,8 @@ export const translations = {
 
   // 7. BENGALI (বাংলা)
   bn: {
-    hospitalName: 'ওপিডি সাথি সরকারি হাসপাতাল (OPD SHAATHI)',
-    hospitalSub: 'OPD SAATHI • স্মার্ট সরকারি হাসপাতাল কিউ ও নেভিগেশন সিস্টেম',
+    hospitalName: 'ওপিডি সাথি সরকারি হাসপাতাল (OPD SHA)',
+    hospitalSub: 'OPD SHA • স্মার্ট সরকারি হাসপাতাল কিউ ও নেভিগেশন সিস্টেম',
     emergencyNotice: '২৪x৭ জরুরি ও ট্রমা কেয়ার বিভাগ নিচতলায় পূর্ব উইং-এ খোলা রয়েছে',
     tabs: {
       register: 'ওপিডি নিবন্ধন',
@@ -1194,8 +1283,8 @@ export const translations = {
 
   // 8. MARATHI (मराठी)
   mr: {
-    hospitalName: 'ओपीडी साथी सरकारी रुग्णालय (OPD SHAATHI)',
-    hospitalSub: 'OPD SAATHI • स्मार्ट सरकारी रुग्णालय रांग व्यवस्थापन आणि नेव्हिगेशन',
+    hospitalName: 'ओपीडी शा (OPD SHA) सरकारी रुग्णालय (OPD SHA)',
+    hospitalSub: 'OPD SHA • स्मार्ट सरकारी रुग्णालय रांग व्यवस्थापन आणि नेव्हिगेशन',
     emergencyNotice: '२४x७ आपत्कालीन व ट्रॉमा केअर तळमजला पूर्व विंगमध्ये उपलब्ध आहे',
     tabs: {
       register: 'ओपीडी नोंदणी',
@@ -1215,7 +1304,7 @@ export const translations = {
       sos: '🚨 आपत्कालीन SOS'
     },
     form: {
-      title: 'ओपीडी साथी • सुलभ नोंदणी आणि अपॉइंटमेंट',
+      title: 'ओपीडी शा (OPD SHA) • सुलभ नोंदणी आणि अपॉइंटमेंट',
       subtitle: 'त्वरित वॉक-इन टोकन घ्या किंवा डॉक्टरांची अपॉइंटमेंट वेळ बुक करा.',
       listenInstructions: '🔊 सूचना ऐका',
       tokenModeLabel: 'नोंदणी प्रकार निवडा:',
@@ -1265,7 +1354,7 @@ export const translations = {
       activeQueue: 'रांगेत असलेले रुग्ण'
     },
     slip: {
-      title: 'ओपीडी साथी सरकारी रुग्णालय • नोंदणी पावती',
+      title: 'ओपीडी शा (OPD SHA) सरकारी रुग्णालय • नोंदणी पावती',
       ministry: 'आरोग्य आणि कुटुंब कल्याण मंत्रालय • राष्ट्रीय स्मार्ट रुग्णालय उपक्रम',
       tokenLabel: 'टोकन क्रमांक',
       dateLabel: 'नोंदणी वेळ',
@@ -1361,4 +1450,264 @@ export const translations = {
       all: 'सर्व विभाग'
     }
   }
+,
+
+  // 9. ARABIC (العربية)
+  ar: {
+    hospitalName: 'مستشفى OPD SHA',
+    hospitalSub: 'OPD SHA • نظام المستشفيات الحكومية الذكي • الرعاية الصحية المتكاملة',
+    emergencyNotice: 'خدمات الطوارئ ورعاية الحوادث متاحة على مدار 24/7 في الطابق الأرضي، الجناح الشرقي',
+    tabs: {
+      register: 'تسجيل العيادات الخارجية',
+      doctors: 'الأطباء المتاحون',
+      slip: 'تذكرتي الطبية',
+      track: 'تتبع الدور والخريطة',
+      nearby: 'المستشفيات القريبة',
+      sorting: 'فرز المرضى',
+      staff: 'لوحة تحكم الطاقم'
+    },
+    accessibility: {
+      language: 'اللغة',
+      fontSize: 'حجم الخط',
+      contrast: 'تباين عالي',
+      audioGuidance: 'الدليل الصوتي',
+      ttsSpeaking: 'جاري النطق...',
+      ttsStop: 'إيقاف الصوت',
+      sos: '🚨 طوارئ SOS'
+    },
+    form: {
+      title: 'OPD SHA • التسجيل السريع وحجز المواعيد',
+      subtitle: 'حجز فوري لتذكرة الدخول المباشر أو تحديد موعد مسبق مع الطبيب المختص.',
+      listenInstructions: '🔊 الاستماع إلى التعليمات',
+      tokenModeLabel: 'اختر نوع التسجيل:',
+      modeWalkin: '⚡ تذكرة دخول فورية (اليوم)',
+      modeAppointment: '📅 حجز موعد مسبق (فترة زمنية)',
+      slotLabel: 'اختر الفترة الزمنية للموعد',
+      selectDoctorLabel: 'اختر الطبيب الاستشاري المفضل (اختياري)',
+      anyDoctor: 'أي طبيب أخصائي متاح',
+      fullName: 'اسم المريض الكامل',
+      fullNamePlaceholder: 'أدخل اسم المريض بالكامل',
+      age: 'العمر (بالسنوات)',
+      agePlaceholder: 'مثال: 45',
+      quickAge: { child: 'طفل (0-12)', adult: 'بالغ (18-59)', senior: 'كبير السن (60+)' },
+      gender: 'الجنس',
+      genderOptions: { select: 'اختر الجنس (اختياري)', male: 'ذكر', female: 'أنثى', other: 'آخر', preferNot: 'أفضل عدم التحديد' },
+      contact: 'رقم الهاتف المحمول',
+      contactPlaceholder: 'رقم الهاتف (اختياري)',
+      govtId: 'الهوية الوطنية / رقم الملف الطبي',
+      govtIdPlaceholder: 'اختياري (مثال: MED-1234-5678)',
+      department: 'اختر القسم الطبي / العيادة',
+      emergencyToggleTitle: '🚨 هل هذه حالة طبية طارئة أو حرجة؟',
+      emergencyToggleDesc: 'قم بالتفعيل في حالات آلام الصدر الشديدة، ضيق التنفس، النزيف الحاد، الحوادث أو فقدان الوعي. يتم تجاوز قوائم الانتظار مباشرة.',
+      emergencyActiveAlert: 'تم تفعيل بروتوكول الطوارئ: سيتم توجيهك إلى غرفة الطوارئ والحوادث 1 فوراً مع فحص أولوية فوري.',
+      submit: 'إصدار تذكرة العيادة ورقم الدور',
+      submitAppointment: 'تأكيد حجز الموعد والتذكرة',
+      submitting: 'جاري معالجة التسجيل...',
+      seniorNotice: 'يحصل كبار السن (60 عاماً فما فوق) على أولوية تلقائية في قائمة الانتظار.',
+      childNotice: 'يحصل الأطفال (≤6 سنوات) على أولوية رعاية الأطفال.'
+    },
+    doctors: {
+      title: 'الأطباء المتاحون وجدول العيادات',
+      subtitle: 'عرض التوافر الحي، المؤهلات العلمية، غرف الاستشارة، ساعات العمل، وحجز مواعيد فورية.',
+      filterDept: 'تصفية حسب القسم الطبي:',
+      allDepts: 'جميع الأقسام',
+      statusAvailable: 'متاح (في الغرفة)',
+      statusConsulting: 'في استشارة طبية',
+      statusRound: 'في جولة تفقدية / جراحة',
+      statusBreak: 'استراحة',
+      availableNow: 'المتاحون الآن فقط',
+      experience: 'سنوات خبرة',
+      room: 'الغرفة',
+      timings: 'أوقات العيادة',
+      bookWithDoc: 'حجز موعد',
+      selectSlot: 'اختر فترة الاستشارة',
+      timingSlots: 'الفترات المتاحة',
+      confirmBooking: 'تأكيد فترة الموعد',
+      activeQueue: 'مرضى في الانتظار'
+    },
+    slip: {
+      title: 'مستشفى OPD SHA • تذكرة تسجيل العيادات الخارجية',
+      ministry: 'وزارة الصحة • المبادرة الوطنية للمستشفيات الذكية',
+      tokenLabel: 'رقم التذكرة',
+      dateLabel: 'وقت التسجيل',
+      patientDetails: 'بيانات المريض',
+      departmentDetails: 'القسم الطبي وغرفة الاستشارة',
+      doctorLabel: 'الطبيب المعالج',
+      roomLabel: 'الغرفة المحددة',
+      floorLabel: 'الطابق والجناح',
+      triageLabel: 'درجة الأولوية (الفرز)',
+      appointmentTypeLabel: 'نوع الحجز',
+      slotTimeLabel: 'فترة الموعد',
+      estimatedWaitLabel: 'وقت الانتظار المتوقع',
+      immediate: 'تقييم فوري عاجل (طوارئ حمراء)',
+      listenSlip: '🔊 قراءة التذكرة بصوت مسموع',
+      printSlip: '🖨️ طباعة التذكرة',
+      proceedToQueue: '🗺️ الانتقال إلى قائمة الدور والاتجاهات',
+      notice: 'يرجى الاحتفاظ بهذه التذكرة الرقمية وإبرازها عند شاشة مدخل عيادة الطبيب.',
+      barcodeText: 'امسح في كشك الغرفة'
+    },
+    track: {
+      title: 'متابعة الدور الذكي ودليل الوصول الداخلي',
+      subtitle: 'أدخل أو امسح رقم تذكرتك لعرض موقعك المباشر في الطابور ووقت الانتظار وخريطة الطابق.',
+      inputPlaceholder: 'أدخل رقم التذكرة (مثال: CARD-102, EMER-001)',
+      trackButton: 'متابعة الحالة',
+      quickTokens: 'نماذج تذاكر للتجربة:',
+      currentServing: 'جاري خدمته حالياً في الغرفة',
+      yourPosition: 'موقعك الحالي في الدور',
+      aheadCount: 'المرضى أمامك في الانتظار',
+      estimatedWait: 'الوقت المتوقع للانتظار',
+      minutes: 'دقيقة',
+      statusLabel: 'الحالة',
+      statusWaiting: 'في قائمة الانتظار',
+      statusCalled: 'الطبيب ينادي رقمك الآن!',
+      statusConsultation: 'في غرفة الاستشارة',
+      statusCompleted: 'اكتملت الاستشارة',
+      statusCancelled: 'ملغي',
+      listenStatus: '🔊 الاستماع لحالة الدور',
+      directionsTitle: 'إرشادات المسار من موقعك إلى العيادة',
+      listenDirections: '🔊 الاستماع إلى إرشادات المسار',
+      overcrowding: {
+        normal: 'حركة تدفق طبيعية (انتظار قليل)',
+        moderate: 'ازدحام متوسط (تأخير طفيف)',
+        overcrowded: 'ازدحام شديد (تم طلب طبيب إضافي)'
+      }
+    },
+    map: {
+      title: 'مخطط التنقل التفاعلي داخل مبنى المستشفى',
+      groundFloor: 'الطابق الأرضي',
+      firstFloor: 'الطابق الأول',
+      secondFloor: 'الطابق الثاني',
+      legend: 'مسارات الألوان الإرشادية:',
+      redLine: 'الطوارئ (المسار الأحمر)',
+      greenLine: 'الطب العام (المسار الأخضر)',
+      blueLine: 'القلب (المسار الأزرق)',
+      yellowLine: 'الأطفال (المسار الأصفر)',
+      purpleLine: 'العظام (المسار البنفسجي)',
+      pinkLine: 'النساء والولادة (المسار الوردي)',
+      cyanLine: 'الأشعة والمختبرات (المسار السماوي)',
+      youAreHere: 'مكتب الاستقبال المركزي',
+      targetRoom: 'وجهتك المحددة'
+    },
+    nearby: {
+      title: 'المستشفيات الحكومية القريبة وتوافر الأطباء',
+      subtitle: 'التوافر الحي، تخصصات الأطباء، الأسرة الشاغرة والاتجاهات بالقرب من موقعك.',
+      detecting: 'جاري تحديد موقعك الجغرافي عبر GPS...',
+      denied: 'تم رفض إذن تحديد الموقع. يتم عرض شبكة المستشفيات المركزية.',
+      available: 'متاح',
+      doctors: 'أطباء',
+      beds: 'أسرة شاغرة',
+      emergency: 'طوارئ 24/7',
+      noEmergency: 'عيادات نهارية فقط',
+      wait: 'الانتظار',
+      filter: 'تصفية حسب نوع المستشفى:',
+      all: 'الكل',
+      openMap: 'فتح في خرائط Google'
+    },
+    staff: {
+      title: 'لوحة إدارة طاقم المستشفى وفرز الحالات',
+      subtitle: 'إدارة مباشرة لقوائم الانتظار بمختلف الأقسام، تقييم الفرز، والنداء الصوتي للمرضى.',
+      roleLabel: 'دور الموظف الحالي:',
+      roles: { triage: 'ممرضة فرز الطوارئ', doctor: 'طبيب استشاري بالعيادة', reception: 'موظف الاستقبال', admin: 'مدير المستشفى' },
+      stats: { total: 'المسجلون اليوم', waiting: 'في طوابير الانتظار', active: 'قيد الاستشارة الآن', completed: 'تمت خدمتهم / مغادرة', emergency: 'حالات الطوارئ', capacity: 'نسبة الإشغال العام' },
+      departmentsTab: 'الأقسام الطبية',
+      emergencyTab: '🚨 فرز طوارئ الحوادث',
+      allPatients: 'جميع المرضى',
+      callNext: 'نداء المريض التالي',
+      startConsultation: 'بدء الاستشارة الطبية',
+      markCompleted: 'تحديد كمكتمل',
+      markAssessed: 'تم فحص الفرز / جاري المتابعة',
+      simulateWalkins: '⚡ محاكاة 5 مرضى جدد',
+      resetData: '🔄 إعادة تعيين البيانات',
+      filterDept: 'تصفية القسم:',
+      all: 'جميع الأقسام'
+    },
+    sorting: {
+      title: 'لوحة فرز وأولوية المرضى',
+      subtitle: 'فرز تلقائي فوري للمرضى حسب الحالات الطارئة وكبار السن (60+) مع إعلانات صوتية فورية لتوجيه التمريض.',
+      stats: {
+        totalWaiting: 'إجمالي بالانتظار',
+        emergency: 'حالات طوارئ حرجة',
+        elderly: 'كبار السن (60+)',
+        assignedDoctor: 'تم تعيين الطبيب',
+        awaitingCollection: 'بانتظار استلام التمريض',
+        inConsultation: 'في غرفة الاستشارة'
+      },
+      filters: {
+        all: 'جميع المرضى',
+        emergencyOnly: '🚨 الطوارئ فقط',
+        elderlyOnly: '👴 كبار السن (60+)',
+        normalOnly: 'أولوية قياسية',
+        searchPlaceholder: 'البحث برقم المريض (التوكن) أو الاسم...',
+        statusFilter: 'تصفية الحالة:',
+        allStatuses: 'جميع الحالات'
+      },
+      columns: {
+        priority: 'رقم الأولوية',
+        patientId: 'رقم المريض',
+        patientName: 'اسم المريض',
+        age: 'العمر',
+        emergency: 'حالة الطوارئ',
+        category: 'فئة الأولوية',
+        doctor: 'الطبيب المعالج',
+        room: 'رقم الغرفة',
+        waitTime: 'مدة الانتظار',
+        nurse: 'الممرضة / المرافق',
+        action: 'الإجراء'
+      },
+      categories: {
+        emergencySenior: '🚨 طوارئ قصوى + مسن (60+)',
+        emergency: '🚨 طوارئ حرجة',
+        elderly: '👴 كبار السن (60+)',
+        normal: 'أولوية قياسية'
+      },
+      statuses: {
+        waiting: 'في الانتظار',
+        priorityAssigned: 'تم تقييم الأولوية',
+        doctorAssigned: 'تم تعيين الطبيب',
+        nurseAssigned: 'تم تعيين التمريض',
+        announcementPending: 'بانتظار النداء',
+        announced: 'تم النداء (في انتظار التمريض)',
+        patientCollected: 'تم استلام المريض',
+        inConsultation: 'في غرفة الاستشارة',
+        completed: 'مكتمل',
+        cancelled: 'ملغي'
+      },
+      actions: {
+        assign: 'تعيين ممرضة وطبيب',
+        announceAgain: 'إعادة النداء الصوتي',
+        collect: 'تم استلام المريض',
+        startConsultation: 'بدء الاستشارة',
+        complete: 'إنهاء الموعد',
+        viewDetails: 'عرض التفاصيل',
+        refresh: 'تحديث القائمة',
+        simulatePatient: '⚡ إضافة مريض تجريبي'
+      },
+      modals: {
+        assignTitle: 'تعيين الطبيب وطاقم المرافقة',
+        assignSubtitle: 'اختر الطبيب المعالج، رقم الغرفة، والممرضة أو المرافق المكلف بالاستلام.',
+        selectDoctor: 'اختر الطبيب المعالج',
+        roomNumber: 'رقم غرفة الاستشارة',
+        selectNurse: 'تعيين ممرضة / مرافق',
+        nurseCustom: 'أو اكتب اسم ممرضة / مرافق مخصص...',
+        autoAnnounceCheckbox: 'بث النداء الصوتي للممرضة فوراً',
+        cancel: 'إلغاء',
+        saveAndAnnounce: 'تأكيد التعيين والنداء الصوتي',
+        detailsTitle: 'الملف السريري وبيانات المريض',
+        close: 'إغلاق'
+      },
+      voice: {
+        mute: 'كتم الصوت',
+        unmute: 'تشغيل الصوت',
+        statusPending: 'قيد الانتظار',
+        statusAnnounced: 'تم النداء',
+        statusCompleted: 'مكتمل',
+        historyTitle: 'سجل الإعلانات الصوتية',
+        noHistory: 'لا توجد إعلانات مسجلة حتى الآن.',
+        voiceWarning: '⚠️ لم يتم العثور على صوت عربي مثبت في متصفحك. يرجى تثبيت حزمة الصوت العربية في إعدادات النظام أو استخدام متصفح مدعوم.',
+        voiceReady: 'الصوت العربي متوفر وجاهز',
+        retryVoice: 'إعادة فحص الصوت'
+      }
+    }
+  },
+
 };

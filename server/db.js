@@ -169,11 +169,14 @@ async function initSchemaAndSeed(db) {
       slot_time TEXT,
       is_emergency INTEGER DEFAULT 0,
       preferred_language TEXT DEFAULT 'en',
-      status TEXT DEFAULT 'WAITING', -- 'WAITING', 'CALLED', 'IN_CONSULTATION', 'COMPLETED', 'CANCELLED'
+      status TEXT DEFAULT 'WAITING', -- 'WAITING', 'PRIORITY_ASSIGNED', 'DOCTOR_ASSIGNED', 'NURSE_ASSIGNED', 'ANNOUNCED', 'PATIENT_COLLECTED', 'IN_CONSULTATION', 'COMPLETED', 'CANCELLED'
       priority_score INTEGER DEFAULT 0,
       triage_level TEXT DEFAULT 'NORMAL', -- 'NORMAL', 'SENIOR', 'CRITICAL', 'URGENT'
       triage_notes TEXT,
       vital_signs TEXT,
+      assigned_nurse TEXT,
+      doctor_room TEXT,
+      announcement_status TEXT DEFAULT 'PENDING',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       called_at DATETIME,
       completed_at DATETIME,
@@ -181,6 +184,11 @@ async function initSchemaAndSeed(db) {
       FOREIGN KEY (doctor_id) REFERENCES doctors(id)
     );
   `);
+
+  // Ensure new columns exist if table was already created on disk
+  try { db.run("ALTER TABLE patients ADD COLUMN assigned_nurse TEXT;"); } catch (e) {}
+  try { db.run("ALTER TABLE patients ADD COLUMN doctor_room TEXT;"); } catch (e) {}
+  try { db.run("ALTER TABLE patients ADD COLUMN announcement_status TEXT DEFAULT 'PENDING';"); } catch (e) {}
 
   // Check if doctors table is populated
   const existingDocs = db.query('SELECT COUNT(*) AS count FROM doctors;');
@@ -190,7 +198,7 @@ async function initSchemaAndSeed(db) {
 }
 
 function seedData(db) {
-  console.log('Seeding OPD SHAATHI Hospital data...');
+  console.log('Seeding OPD SHA Hospital data...');
 
   // Clear existing if any
   db.run('DELETE FROM patients;');
@@ -411,30 +419,29 @@ function seedData(db) {
     );
   }
 
-  // 5. Sample Patients
+  // 5. Sample Patients with Priority and Personnel Assignments
   const samplePatients = [
-    { token: 'EMER-001', name: 'Rameshwar Lal', age: 58, gender: 'Male', contact: '9876543210', govt_id: 'ABHA-9821-4321', dept: 'EMER', doctor: 'DOC-EMER-1', appt_type: 'WALKIN', slot: null, is_emer: 1, lang: 'hi', status: 'IN_CONSULTATION', priority: 100, triage: 'CRITICAL', notes: 'Severe chest tightness and dyspnea. Immediate oxygen therapy started.' },
-    { token: 'CARD-101', name: 'Devendra Kumar', age: 67, gender: 'Male', contact: '9845123456', govt_id: 'ABHA-1122-3344', dept: 'CARD', doctor: 'DOC-CARD-1', appt_type: 'APPOINTMENT', slot: '09:30 AM - 10:00 AM', is_emer: 0, lang: 'hi', status: 'CALLED', priority: 10, triage: 'SENIOR', notes: 'Follow-up hypertension' },
-    { token: 'CARD-102', name: 'Lakshmi Narayanan', age: 52, gender: 'Female', contact: '9876501234', govt_id: 'AADHAAR-8901', dept: 'CARD', doctor: 'DOC-CARD-2', appt_type: 'WALKIN', slot: null, is_emer: 0, lang: 'ta', status: 'WAITING', priority: 0, triage: 'NORMAL', notes: 'Routine cardiac evaluation' },
-    { token: 'CARD-103', name: 'Amitabh Sen', age: 44, gender: 'Male', contact: '9822334455', govt_id: 'ABHA-5544-3322', dept: 'CARD', doctor: 'DOC-CARD-1', appt_type: 'APPOINTMENT', slot: '10:30 AM - 11:00 AM', is_emer: 0, lang: 'en', status: 'WAITING', priority: 0, triage: 'NORMAL', notes: 'Palpitations review' },
-    { token: 'ORTH-101', name: 'Kusum Devi', age: 63, gender: 'Female', contact: '9711223344', govt_id: 'AADHAAR-4411', dept: 'ORTH', doctor: 'DOC-ORTH-1', appt_type: 'WALKIN', slot: null, is_emer: 0, lang: 'hi', status: 'CALLED', priority: 10, triage: 'SENIOR', notes: 'Right knee osteoarthritis' },
-    { token: 'ORTH-102', name: 'John Mathew', age: 34, gender: 'Male', contact: '9944556677', govt_id: 'ABHA-6677-8899', dept: 'ORTH', doctor: 'DOC-ORTH-2', appt_type: 'APPOINTMENT', slot: '11:30 AM - 12:00 PM', is_emer: 0, lang: 'en', status: 'WAITING', priority: 0, triage: 'NORMAL', notes: 'Sprained left ankle' },
-    { token: 'GEN-101', name: 'Pooja Sharma', age: 29, gender: 'Female', contact: '9811224466', govt_id: 'ABHA-3344-5566', dept: 'GENMED', doctor: 'DOC-MED-1', appt_type: 'WALKIN', slot: null, is_emer: 0, lang: 'hi', status: 'CALLED', priority: 0, triage: 'NORMAL', notes: 'Viral fever day 3' },
-    { token: 'GEN-102', name: 'Mohan Lal', age: 48, gender: 'Male', contact: '9833445566', govt_id: 'AADHAAR-1092', dept: 'GENMED', doctor: 'DOC-MED-2', appt_type: 'APPOINTMENT', slot: '10:00 AM - 10:30 AM', is_emer: 0, lang: 'hi', status: 'WAITING', priority: 0, triage: 'NORMAL', notes: 'Gastric discomfort' },
-    { token: 'PEDI-101', name: 'Master Aarav Gupta', age: 5, gender: 'Male', contact: '9810987654', govt_id: 'ABHA-7788-9900', dept: 'PEDI', doctor: 'DOC-PED-1', appt_type: 'WALKIN', slot: null, is_emer: 0, lang: 'en', status: 'CALLED', priority: 10, triage: 'NORMAL', notes: 'Annual booster vaccination' },
-    { token: 'PEDI-102', name: 'Baby Ananya', age: 2, gender: 'Female', contact: '9819876543', govt_id: 'ABHA-1234-5678', dept: 'PEDI', doctor: 'DOC-PED-2', appt_type: 'APPOINTMENT', slot: '01:00 PM - 01:30 PM', is_emer: 0, lang: 'hi', status: 'WAITING', priority: 10, triage: 'NORMAL', notes: 'Earache and mild fever' },
-    { token: 'GYN-101', name: 'Sunita Patel', age: 31, gender: 'Female', contact: '9870123456', govt_id: 'ABHA-4455-6677', dept: 'GYN', doctor: 'DOC-GYN-1', appt_type: 'WALKIN', slot: null, is_emer: 0, lang: 'hi', status: 'CALLED', priority: 0, triage: 'NORMAL', notes: 'Antenatal ultrasound review' }
+    { token: 'EMER-001', name: 'Rameshwar Lal', age: 68, gender: 'Male', contact: '9876543210', govt_id: 'ABHA-9821-4321', dept: 'EMER', doctor: 'DOC-EMER-1', doc_room: 'Bay 1 (Red Zone)', nurse: 'Nurse Sarah Jenkins', appt_type: 'WALKIN', slot: null, is_emer: 1, lang: 'hi', status: 'IN_CONSULTATION', priority: 1000, triage: 'CRITICAL', notes: 'Severe chest tightness and dyspnea. Immediate oxygen therapy started.' },
+    { token: 'EMER-002', name: 'Zaid Al-Harbi', age: 24, gender: 'Male', contact: '9888123456', govt_id: 'ABHA-3321-7788', dept: 'EMER', doctor: 'DOC-EMER-2', doc_room: 'Bay 2 (Trauma)', nurse: 'Nurse Fatima Al-Hassan', appt_type: 'WALKIN', slot: null, is_emer: 1, lang: 'ar', status: 'ANNOUNCED', priority: 900, triage: 'CRITICAL', notes: 'Acute trauma from bike accident, laceration bleeding controlled.' },
+    { token: 'CARD-101', name: 'Devendra Kumar', age: 72, gender: 'Male', contact: '9845123456', govt_id: 'ABHA-1122-3344', dept: 'CARD', doctor: 'DOC-CARD-1', doc_room: 'Room 104-A', nurse: 'Nurse Anita Sharma', appt_type: 'APPOINTMENT', slot: '09:30 AM - 10:00 AM', is_emer: 0, lang: 'hi', status: 'NURSE_ASSIGNED', priority: 500, triage: 'SENIOR', notes: 'Senior citizen follow-up for chronic hypertension' },
+    { token: 'ORTH-101', name: 'Kusum Devi', age: 65, gender: 'Female', contact: '9711223344', govt_id: 'AADHAAR-4411', dept: 'ORTH', doctor: 'DOC-ORTH-1', doc_room: 'Room 204-A', nurse: 'Caretaker Ramesh Kumar', appt_type: 'WALKIN', slot: null, is_emer: 0, lang: 'hi', status: 'WAITING', priority: 500, triage: 'SENIOR', notes: 'Right knee osteoarthritis, requires wheelchair escort' },
+    { token: 'CARD-102', name: 'Lakshmi Narayanan', age: 52, gender: 'Female', contact: '9876501234', govt_id: 'AADHAAR-8901', dept: 'CARD', doctor: 'DOC-CARD-2', doc_room: 'Room 104-B', nurse: null, appt_type: 'WALKIN', slot: null, is_emer: 0, lang: 'ta', status: 'WAITING', priority: 100, triage: 'NORMAL', notes: 'Routine cardiac evaluation' },
+    { token: 'ORTH-102', name: 'John Mathew', age: 34, gender: 'Male', contact: '9944556677', govt_id: 'ABHA-6677-8899', dept: 'ORTH', doctor: 'DOC-ORTH-2', doc_room: 'Room 204-B', nurse: 'Caretaker John Mathew', appt_type: 'APPOINTMENT', slot: '11:30 AM - 12:00 PM', is_emer: 0, lang: 'en', status: 'PATIENT_COLLECTED', priority: 100, triage: 'NORMAL', notes: 'Sprained left ankle' },
+    { token: 'GEN-101', name: 'Pooja Sharma', age: 29, gender: 'Female', contact: '9811224466', govt_id: 'ABHA-3344-5566', dept: 'GENMED', doctor: 'DOC-MED-1', doc_room: 'Room 012-A', nurse: 'Nurse Priya Nair', appt_type: 'WALKIN', slot: null, is_emer: 0, lang: 'hi', status: 'PATIENT_COLLECTED', priority: 100, triage: 'NORMAL', notes: 'Viral fever day 3' },
+    { token: 'GEN-102', name: 'Mohan Lal', age: 48, gender: 'Male', contact: '9833445566', govt_id: 'AADHAAR-1092', dept: 'GENMED', doctor: 'DOC-MED-2', doc_room: 'Room 012-B', nurse: null, appt_type: 'APPOINTMENT', slot: '10:00 AM - 10:30 AM', is_emer: 0, lang: 'hi', status: 'WAITING', priority: 100, triage: 'NORMAL', notes: 'Gastric discomfort' },
+    { token: 'PEDI-101', name: 'Master Aarav Gupta', age: 5, gender: 'Male', contact: '9810987654', govt_id: 'ABHA-7788-9900', dept: 'PEDI', doctor: 'DOC-PED-1', doc_room: 'Room 112-A', nurse: null, appt_type: 'WALKIN', slot: null, is_emer: 0, lang: 'en', status: 'WAITING', priority: 100, triage: 'NORMAL', notes: 'Annual booster vaccination' },
+    { token: 'GYN-101', name: 'Sunita Patel', age: 31, gender: 'Female', contact: '9870123456', govt_id: 'ABHA-4455-6677', dept: 'GYN', doctor: 'DOC-GYN-1', doc_room: 'Room 215-A', nurse: null, appt_type: 'WALKIN', slot: null, is_emer: 0, lang: 'hi', status: 'COMPLETED', priority: 100, triage: 'NORMAL', notes: 'Antenatal ultrasound review' }
   ];
 
   for (const p of samplePatients) {
     db.run(
-      `INSERT INTO patients (token_number, name, age, gender, contact, govt_id, department_id, doctor_id, appointment_type, slot_time, is_emergency, preferred_language, status, priority_score, triage_level, triage_notes, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', '-30 minutes'));`,
-      [p.token, p.name, p.age, p.gender, p.contact, p.govt_id, p.dept, p.doctor, p.appt_type, p.slot, p.is_emer, p.lang, p.status, p.priority, p.triage, p.notes]
+      `INSERT INTO patients (token_number, name, age, gender, contact, govt_id, department_id, doctor_id, doctor_room, assigned_nurse, appointment_type, slot_time, is_emergency, preferred_language, status, priority_score, triage_level, triage_notes, announcement_status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', '-30 minutes'));`,
+      [p.token, p.name, p.age, p.gender, p.contact, p.govt_id, p.dept, p.doctor, p.doc_room, p.nurse, p.appt_type, p.slot, p.is_emer, p.lang, p.status, p.priority, p.triage, p.notes, p.nurse ? 'ANNOUNCED' : 'PENDING']
     );
   }
 
-  console.log('Database seeded successfully with OPD SHAATHI Hospital doctors, slots, and active patient queues.');
+  console.log('Database seeded successfully with OPD SHA Hospital doctors, slots, and active patient queues.');
 }
 
 function resetDatabase() {

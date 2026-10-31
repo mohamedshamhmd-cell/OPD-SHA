@@ -70,8 +70,11 @@ export default function OPDSlip({
       case 'mr':
         msg = `ओपीडी साथी रुग्णालय पावती. टोकन क्रमांक ${token}. रुग्णाचे नाव ${slip.patient.name}. विभाग ${deptName}. खोली क्र. ${room}. डॉक्टर ${doctor}. ${slot}${directions}`;
         break;
+      case 'ar':
+        msg = `تذكرة مستشفى OPD SHA. رقم التذكرة ${token}. المريض ${slip.patient.name}. القسم ${deptName}. الغرفة المحددة ${room}. الطبيب ${doctor}. ${slot}الاتجاهات: ${directions}`;
+        break;
       default:
-        msg = `OPD SHAATHI Hospital Slip. Token Number ${token}. Patient ${slip.patient.name}. Department ${deptName}. Assigned Room ${room}. Consulting Doctor ${doctor}. ${slot}Directions: ${directions}`;
+        msg = `OPD SHA Hospital Slip. Token Number ${token}. Patient ${slip.patient.name}. Department ${deptName}. Assigned Room ${room}. Consulting Doctor ${doctor}. ${slot}Directions: ${directions}`;
         break;
     }
 
@@ -124,7 +127,7 @@ export default function OPDSlip({
             <span className="text-3xl">🏥</span>
             <div>
               <h2 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-indigo-950">
-                {t.hospitalName || 'OPD SHAATHI HOSPITAL'}
+                {t.hospitalName || 'OPD SHA HOSPITAL'}
               </h2>
               <p className="text-xs text-slate-600 font-semibold tracking-wide">
                 {t.slip?.ministry || 'Ministry of Health & Family Welfare • National Smart Hospital Initiative'}

@@ -1,56 +1,50 @@
-# 🏥 OPD SAATHI — Smart Government Hospital Portal
+# 🏥 OPD SHA — Smart Government Hospital Portal
 
-A full-stack Smart OPD Queue Management and Accessible Navigation system for Government Hospitals.
+A full-stack Smart OPD Queue Management, Patient Sorting, and Accessible Navigation system for Government Hospitals.
 
-## Features
-- 📋 Patient OPD Registration & Token Generation
-- 👨‍⚕️ Doctor Availability & Appointment Booking (8 specialities)
-- 🔢 Real-time Queue Tracker with Multilingual TTS Announcements
-- 🗺️ Nearby Hospitals Map (OpenStreetMap)
-- 🏥 Hospital Floor Map & Wayfinding
-- 👨‍💼 Staff Triage Dashboard
-- 🌐 8 Indian Languages: English, Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Marathi
+## ✨ Features
+- 📋 **Patient OPD Registration & Token Generation** (Instant walk-in and scheduled time slots)
+- 👨‍⚕️ **Doctor Availability & Appointment Booking** (Detailed roster across 8 clinical specialities)
+- 🔄 **Patient Sorting & Prioritization Console (New)**
+  - Automated prioritization: Emergency cases always highest priority (Red indicator)
+  - Senior citizens (60+) receive higher elderly priority
+  - Combined weighted algorithm + FIFO waiting time tie-breaker
+  - Nurse & Caretaker escort assignment workflow
+  - Automatic multilingual nurse escort voice announcements with room numbers
+- 🌐 **Multilingual & Full RTL Arabic Support**
+  - Languages: Arabic (العربية), English, Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Marathi
+  - Right-to-Left (RTL) layout switching for Arabic
+  - Native Web Speech API synthesis with authentic Arabic and English voices
+- 🔢 **Real-time Queue Tracker with Multilingual Announcements**
+- 🗺️ **Nearby Hospitals Map & Bed Availability**
+- 🏥 **Hospital Interactive Floor Map & Wayfinding**
+- 👨‍💼 **Staff & Triage Operations Dashboard**
 
-## Tech Stack
-- **Frontend:** React + Vite + TailwindCSS + Leaflet.js
+## 🛠️ Tech Stack
+- **Frontend:** React 18 + Vite + TailwindCSS 4 + Lucide Icons + Leaflet.js
 - **Backend:** Node.js + Express 5
-- **Database:** sql.js (SQLite in-memory, auto-seeded)
-- **Speech:** Web Speech API + Google TTS fallback
+- **Database:** sql.js (SQLite persistent/in-memory, auto-seeded)
+- **Speech Engine:** Web Speech API (`speechSynthesis`) + Arabic voice detection + Google TTS fallback
 
-## Local Development
+## 🚀 Local Development
 
 ```bash
-# Install root dependencies
+# 1. Install root & client dependencies
 npm install
-
-# Install frontend dependencies
 npm install --prefix client
 
-# Start backend (port 5000)
+# 2. Start backend server (port 5000)
 npm start
 
-# Start frontend dev server (port 5173) — in a second terminal
+# 3. In a second terminal, launch Vite dev server (port 5173)
 npm run dev:client
 ```
 
-Open http://localhost:5173 in your browser.
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-## Production Build
+## 📦 Production Build
 
 ```bash
-npm run build   # builds the React frontend into client/dist/
-npm start       # serves both API and frontend on port 5000
+npm run build   # builds React frontend into client/dist/
+npm start       # serves API and frontend on port 5000
 ```
-
-## Deployment (Render.com — Free)
-
-1. Push this repo to GitHub
-2. Go to https://render.com → New Web Service
-3. Connect your GitHub repo
-4. Set:
-   - **Build Command:** `npm run build`
-   - **Start Command:** `npm start`
-   - **Environment:** Node
-5. Click **Deploy**
-
-Your live URL will be: `https://opd-saathi.onrender.com`

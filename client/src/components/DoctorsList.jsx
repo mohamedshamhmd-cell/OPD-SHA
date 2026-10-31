@@ -179,7 +179,7 @@ export default function DoctorsList({
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold backdrop-blur tracking-wide">
               <Stethoscope className="w-3.5 h-3.5 text-cyan-300" />
-              <span>OPD SHAATHI • Doctor Availability & Appointments</span>
+              <span>OPD SHA • Doctor Availability & Appointments</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-2">
               {t.doctors?.title || 'Doctors Available & OPD Roster'}

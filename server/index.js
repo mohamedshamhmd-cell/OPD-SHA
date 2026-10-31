@@ -14,9 +14,9 @@ app.use(express.json());
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ONLINE',
-    system: 'OPD SHAATHI Hospital - Smart Queue Management & Navigation System',
+    system: 'OPD SHA Hospital - Smart Queue Management & Navigation System',
     timestamp: new Date().toISOString(),
-    version: '2.0.0'
+    version: '2.1.0'
   });
 });
 
@@ -38,9 +38,9 @@ app.use((req, res, next) => {
       res.status(200).send(`
         <!DOCTYPE html>
         <html>
-        <head><title>OPD SHAATHI Hospital Portal</title></head>
+        <head><title>OPD SHA Hospital Portal</title></head>
         <body style="font-family:sans-serif;padding:2rem;text-align:center;">
-          <h2>🏥 OPD SHAATHI Hospital Backend Running</h2>
+          <h2>🏥 OPD SHA Hospital Backend Running</h2>
           <p>API endpoints are live at <code>/api/...</code></p>
           <p>Frontend is compiling or building. Run <code>npm run build</code> in the client folder or launch Vite dev server.</p>
         </body>
@@ -55,7 +55,7 @@ async function startServer() {
     await getDb(); // ensure DB initialized & seeded
     const server = app.listen(PORT, () => {
       console.log(`\n======================================================`);
-      console.log(`🏥 OPD SHAATHI HOSPITAL BACKEND IS READY!`);
+      console.log(`🏥 OPD SHA HOSPITAL BACKEND IS READY!`);
       console.log(`🌐 Server running at: http://localhost:${PORT}`);
       console.log(`📡 API Endpoints at: http://localhost:${PORT}/api/departments`);
       console.log(`👨‍⚕️ Doctors Roster at: http://localhost:${PORT}/api/doctors`);
