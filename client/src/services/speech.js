@@ -6,6 +6,7 @@ let onStateChangeListeners = [];
 let onVoiceAlertListeners = [];
 let onHistoryListeners = [];
 let currentAudio = null;
+let lastAnnouncementData = null;
 
 // Track duplicate announcements to prevent repetitive audio on refresh
 const announcedKeys = new Set();
@@ -28,6 +29,22 @@ let isMutedState = (() => {
     return false;
   }
 })();
+
+// Voice cache for asynchronous voice loading
+let cachedVoices = [];
+function updateVoices() {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    try {
+      cachedVoices = window.speechSynthesis.getVoices() || [];
+    } catch {
+      cachedVoices = [];
+    }
+  }
+}
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  updateVoices();
+  window.speechSynthesis.onvoiceschanged = updateVoices;
+}
 
 export function isSpeechMuted() {
   return isMutedState;
@@ -144,7 +161,7 @@ export function playHospitalChime() {
   }
 }
 
-// BCP-47 Locale mapping for supported languages including Arabic
+// BCP-47 Locale mapping for supported languages
 export const LANG_LOCALE_MAP = {
   en: 'en-IN',
   ar: 'ar-SA',
@@ -157,248 +174,469 @@ export const LANG_LOCALE_MAP = {
   mr: 'mr-IN',
 };
 
-// Voice name hints for speech synthesis
-const FEMALE_VOICE_HINTS = [
-  'female', 'woman', 'lady', 'girl',
-  // English
-  'zira', 'heera', 'hazel', 'susan', 'catherine', 'victoria',
-  'samantha', 'karen', 'moira', 'veena', 'fiona', 'tessa',
-  'aria', 'jenny', 'sonia', 'libby', 'mia', 'neerja',
-  // Arabic
-  'laila', 'mariam', 'salma', 'hoda', 'zeina', 'fatima', 'nour',
-  'maged', 'tarik', 'naayf', 'arabic', 'عربي', 'عربية',
-  // Hindi
-  'lekha', 'priya', 'kalpana', 'swara',
-  // Tamil
-  'raveena', 'tamil', 'தமிழ்', 'nanmalar', 'vani',
-  // Telugu
-  'telugu', 'తెలుగు', 'chitra', 'keerthi',
-  // Kannada
-  'kannada', 'ಕನ್ನಡ', 'sapna', 'radha',
-  // Malayalam
-  'malayalam', 'മലയാളം', 'shobhana', 'anjali',
-  // Bengali
-  'bengali', 'বাংলা', 'tanisha', 'roshni',
-  // Marathi
-  'marathi', 'मराठी', 'aarohi', 'manisha',
-  // Google TTS default female identifiers
-  'google'
-];
+// Language display names
+export const LANG_NAMES = {
+  en: 'English',
+  ar: 'العربية (Arabic)',
+  hi: 'हिन्दी (Hindi)',
+  ta: 'தமிழ் (Tamil)',
+  te: 'తెలుగు (Telugu)',
+  kn: 'ಕನ್ನಡ (Kannada)',
+  ml: 'മലയാളം (Malayalam)',
+  bn: 'বাংলা (Bengali)',
+  mr: 'मराठी (Marathi)',
+};
 
-const MALE_VOICE_EXCLUSIONS = [
-  'david', 'mark', 'richard', 'james', 'george', 'ryan', 'thomas', 'guy',
-  'hemant', 'sundar', 'prabhas', 'male', 'man', 'boy'
-];
+// Voice name search keywords for speech synthesis
+const VOICE_LANG_KEYWORDS = {
+  ar: ['ar', 'arabic', 'عربي', 'عربية', 'laila', 'mariam', 'salma', 'hoda', 'zeina', 'fatima', 'nour', 'tarik', 'shakir'],
+  hi: ['hi', 'hindi', 'हिन्दी', 'lekha', 'swara', 'priya', 'kalpana', 'madhur', 'hemant'],
+  ta: ['ta', 'tamil', 'தமிழ்', 'valluvar', 'raveena', 'vani', 'nanmalar'],
+  te: ['te', 'telugu', 'తెలుగు', 'mohan', 'chitra', 'keerthi'],
+  kn: ['kn', 'kannada', 'ಕನ್ನಡ', 'gagan', 'sapna', 'radha'],
+  ml: ['ml', 'malayalam', 'മലയാളം', 'midhun', 'shobhana', 'anjali'],
+  bn: ['bn', 'bengali', 'বাংলা', 'bashkar', 'tanisha', 'roshni'],
+  mr: ['mr', 'marathi', 'मराठी', 'aarohi', 'manisha'],
+  en: ['en', 'english', 'india', 'zira', 'heera', 'hazel', 'aria', 'jenny', 'veena', 'neerja']
+};
 
 /**
- * Detect available Arabic voices in Web Speech API
+ * Detect available voices for any given language code
  */
-export function getAvailableArabicVoices() {
+export function getAvailableVoicesForLang(langCode = 'en') {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return [];
-  const voices = window.speechSynthesis.getVoices();
-  return voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('ar'));
+  const voices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
+  const keywords = VOICE_LANG_KEYWORDS[langCode] || [langCode];
+  
+  return voices.filter(v => {
+    const l = (v.lang || '').toLowerCase();
+    const n = (v.name || '').toLowerCase();
+    return keywords.some(k => l.startsWith(k) || l.includes(k) || n.includes(k));
+  });
+}
+
+export function getAvailableArabicVoices() {
+  return getAvailableVoicesForLang('ar');
 }
 
 export function isArabicVoiceAvailable() {
   return getAvailableArabicVoices().length > 0;
 }
 
-// Find a matching voice for the target locale
+// Find best matching voice for target locale
 export function pickVoiceForLocale(voices, locale) {
+  if (!voices || voices.length === 0) {
+    voices = cachedVoices.length > 0 ? cachedVoices : (typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
+  }
   if (!voices || voices.length === 0) return null;
-  const lang = locale.split('-')[0].toLowerCase();
 
-  const exactLocale  = voices.filter(v => v.lang && v.lang.toLowerCase() === locale.toLowerCase());
-  const prefixLocale = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith(lang));
-  const broadLocale  = voices.filter(v => (v.lang && v.lang.toLowerCase().includes(lang)) || (v.name && v.name.toLowerCase().includes(lang)));
+  const lang = (locale || 'en').split('-')[0].toLowerCase();
+  const keywords = VOICE_LANG_KEYWORDS[lang] || [lang];
 
-  const isFemaleHint = (v) => FEMALE_VOICE_HINTS.some(h => v.name.toLowerCase().includes(h));
-  const notMale      = (v) => !MALE_VOICE_EXCLUSIONS.some(h => v.name.toLowerCase().includes(h));
+  // 1. Exact locale matching (e.g. 'ta-IN')
+  const exact = voices.find(v => (v.lang || '').toLowerCase() === locale.toLowerCase());
+  if (exact) return exact;
 
-  // 1. Exact locale female
-  const v1 = exactLocale.find(isFemaleHint);
-  if (v1) return v1;
+  // 2. Exact lang prefix matching (e.g. 'ta')
+  const langPrefix = voices.find(v => (v.lang || '').toLowerCase().startsWith(lang));
+  if (langPrefix) return langPrefix;
 
-  // 2. Exact locale non-male
-  const v2 = exactLocale.find(notMale);
-  if (v2) return v2;
+  // 3. Keyword matching in name or lang tag
+  const keywordMatch = voices.find(v => {
+    const l = (v.lang || '').toLowerCase();
+    const n = (v.name || '').toLowerCase();
+    return keywords.some(k => l.includes(k) || n.includes(k));
+  });
+  if (keywordMatch) return keywordMatch;
 
-  // 3. Exact locale any
-  if (exactLocale.length > 0) return exactLocale[0];
-
-  // 4. Prefix locale female
-  const v4 = prefixLocale.find(isFemaleHint);
-  if (v4) return v4;
-
-  // 5. Prefix locale any
-  if (prefixLocale.length > 0) return prefixLocale[0];
-
-  // 6. Broad locale
-  if (broadLocale.length > 0) return broadLocale[0];
-
-  // STRICT: Do NOT return a voice of a different language family!
-  // Speaking Arabic/Tamil with an English voice sounds incomprehensible and fails in Chrome/Windows.
   return null;
 }
 
-// Clean text for speech synthesis
-function sanitizeSpeechText(text) {
+// Clean text for speech synthesis and expand abbreviations
+function sanitizeSpeechText(text, lang = 'en') {
   if (!text) return '';
-  return text
+
+  let cleaned = text
     .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
     .replace(/[•|*#_~`]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-}
 
-// Build Google TTS Audio stream URL
-function buildGoogleTTSUrl(text, lang) {
-  const shortText = text.length > 180 ? text.substring(0, 180) : text;
-  return `https://translate.google.com/translate_tts?ie=UTF-8&tl=${encodeURIComponent(lang)}&client=tw-ob&q=${encodeURIComponent(shortText)}`;
-}
+  // Natural pronunciation replacement for "OPD" per language so voice doesn't choke or get truncated
+  switch (lang) {
+    case 'ar':
+      cleaned = cleaned.replace(/\bOPD\b/gi, 'العيادات الخارجية').replace(/\bSHA\b/gi, 'شا');
+      break;
+    case 'hi':
+      cleaned = cleaned.replace(/\bOPD\b/gi, 'ओपीडी').replace(/\bSHA\b/gi, 'शा');
+      break;
+    case 'ta':
+      cleaned = cleaned.replace(/\bOPD\b/gi, 'ஓபிடி').replace(/\bSHA\b/gi, 'ஷா');
+      break;
+    case 'te':
+      cleaned = cleaned.replace(/\bOPD\b/gi, 'ఓపీడీ').replace(/\bSHA\b/gi, 'షా');
+      break;
+    case 'kn':
+      cleaned = cleaned.replace(/\bOPD\b/gi, 'ಒಪಿಡಿ').replace(/\bSHA\b/gi, 'ಶಾ');
+      break;
+    case 'ml':
+      cleaned = cleaned.replace(/\bOPD\b/gi, 'ഒപിഡി').replace(/\bSHA\b/gi, 'ഷാ');
+      break;
+    case 'bn':
+      cleaned = cleaned.replace(/\bOPD\b/gi, 'ওপিডি').replace(/\bSHA\b/gi, 'শা');
+      break;
+    case 'mr':
+      cleaned = cleaned.replace(/\bOPD\b/gi, 'ओपीडी').replace(/\bSHA\b/gi, 'शा');
+      break;
+    default:
+      cleaned = cleaned.replace(/\bOPD\b/gi, 'O.P.D.').replace(/\bDr\./gi, 'Doctor');
+      break;
+  }
 
-// Play TTS Audio using HTML5 Audio
-function playAudioStream(cleanedText, lang) {
-  return new Promise((resolve, reject) => {
-    try {
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-      }
-
-      const url = buildGoogleTTSUrl(cleanedText, lang);
-      const audio = new Audio(url);
-      currentAudio = audio;
-
-      audio.onplay = () => {
-        notifyState(true);
-      };
-
-      audio.onended = () => {
-        notifyState(false);
-        currentAudio = null;
-        resolve();
-      };
-
-      audio.onerror = (err) => {
-        notifyState(false);
-        currentAudio = null;
-        reject(err);
-      };
-
-      audio.play().catch(reject);
-    } catch (e) {
-      reject(e);
-    }
-  });
+  return cleaned;
 }
 
 /**
- * Main speakText function
- * Accurately speaks in English, Arabic, or Indian regional languages
+ * Phonetic transliterations for fallback when OS lacks the native Indic/Arabic TTS voices.
+ * Ensures that even on English-only Windows/Mac/Linux installations, the announcement is
+ * spoken completely and naturally in the correct language words instead of cutting off or aborting.
+ */
+function getPhoneticFallback(data, lang) {
+  const pName = data.patientName || 'Patient';
+  const tNum = (data.tokenNumber || '').replace('-', ' ');
+  const dName = data.doctorName || 'Doctor';
+  const room = data.roomNumber || 'Room 5';
+
+  switch (lang) {
+    case 'ar':
+      return `Al-mareed ${pName}, raqm ${tNum}, yurja al-tawajjuh ila ${room}. Al-tabeeb ${dName} fi intizarek.`;
+    case 'hi':
+      return `Mareez ${pName}, token sankhya ${tNum}, kripya kamra number ${room} mein padhaarein. Doctor ${dName} aapka intezaar kar rahe hain.`;
+    case 'ta':
+      return `Noyaali ${pName}, token enn ${tNum}, aalosanai arai ${room}-kku varavum. Maruthuvar ${dName} ungalukkaaga kaathirukkiraar.`;
+    case 'te':
+      return `Rogi ${pName}, token sankhya ${tNum}, dayachesi room number ${room}-ki randi. Doctor ${dName} mee kosam vechi unnaaru.`;
+    case 'kn':
+      return `Rogi ${pName}, token sankhye ${tNum}, dayavittu room number ${room}-kke banni. Doctor ${dName} nimage kaayuttiddare.`;
+    case 'ml':
+      return `Rogi ${pName}, token number ${tNum}, dayavaayi room number ${room}-lekku varoo. Doctor ${dName} ningalkkaayi kaathirikkunnu.`;
+    case 'bn':
+      return `Rogi ${pName}, token number ${tNum}, doya kore room number ${room}-e ashoon. Doctor ${dName} aponar jonno opekkha korchhen.`;
+    case 'mr':
+      return `Rugna ${pName}, token kramank ${tNum}, krupaya room number ${room} madhe yaave. Doctor ${dName} aapli vaat paahat aahet.`;
+    default:
+      return `Patient ${pName}, token number ${tNum}, please proceed to ${room}. Doctor ${dName} is waiting for you.`;
+  }
+}
+
+/**
+ * Core text-to-speech execution
+ * Robustly manages native SpeechSynthesis, chunks sentences, and prevents overlaps
  */
 export function speakText(text, lang = 'en') {
   if (isMutedState) {
-    console.info('[TTS] Voice announcements are currently muted by user.');
+    console.info('[TTS] Voice announcements are muted.');
     return;
   }
 
-  if (!text || text.trim() === '') return;
+  if (!text || typeof text !== 'string' || text.trim() === '') return;
 
-  // Stop any ongoing speech
+  // Cancel any ongoing speech immediately
   stopSpeaking();
 
-  const cleaned = sanitizeSpeechText(text);
+  const cleaned = sanitizeSpeechText(text, lang);
   if (!cleaned) return;
 
   const locale = LANG_LOCALE_MAP[lang] || 'en-IN';
 
-  // Play realistic hospital chime first
+  // Play hospital chime
   playHospitalChime();
 
   setTimeout(() => {
-    // Check if Web Speech API has a genuine matching voice for this language
-    let matchingVoice = null;
-    let allVoices = [];
-    if ('speechSynthesis' in window) {
-      allVoices = window.speechSynthesis.getVoices();
-      matchingVoice = pickVoiceForLocale(allVoices, locale);
-    }
-
-    // SPECIAL HANDLING FOR ARABIC:
-    // If user requested Arabic and no native Arabic voice is present in the browser:
-    // Do NOT silently speak English voice for Arabic text!
-    if (lang === 'ar' && !matchingVoice) {
-      console.warn('[TTS] No native Arabic voice detected in browser speech synthesis.');
-      notifyVoiceAlert({
-        type: 'ARABIC_VOICE_MISSING',
-        message: 'No Arabic voice found installed on this device/browser. Please enable an Arabic voice in system settings or use the audio stream fallback.',
-        lang: 'ar'
-      });
-
-      // Try playing online Google TTS audio stream for authentic native Arabic
-      playAudioStream(cleaned, 'ar').catch(() => {
-        notifyState(false);
-      });
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      console.warn('[TTS] Web Speech API not supported in this environment.');
       return;
     }
 
-    if (matchingVoice) {
-      // Use native Web Speech API with the found voice
-      try {
-        const utterance = new SpeechSynthesisUtterance(cleaned);
-        utterance.rate = lang === 'ar' ? 0.88 : 0.92;
-        utterance.pitch = 1.15;
-        utterance.lang = matchingVoice.lang || locale;
-        utterance.voice = matchingVoice;
+    const allVoices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
+    let matchingVoice = pickVoiceForLocale(allVoices, locale);
 
-        utterance.onstart = () => notifyState(true);
-        utterance.onend = () => notifyState(false);
-        utterance.onerror = (e) => {
-          if (e.error !== 'interrupted') {
-            console.warn('[TTS] Web Speech failed, falling back to Audio stream:', e.error);
-            playAudioStream(cleaned, lang).catch(() => notifyState(false));
-          } else {
-            notifyState(false);
-          }
-        };
+    // If native voice is not installed on this OS, use our phonetic transliteration
+    // so an English voice speaks the announcement in the language rather than failing or saying "OPD"
+    let textToSpeak = cleaned;
+    let voiceToUse = matchingVoice;
+    let langToSet = locale;
 
-        window.speechSynthesis.speak(utterance);
-        console.info(`[TTS] Speaking with native voice: "${matchingVoice.name}" (${matchingVoice.lang}) for lang="${lang}"`);
-      } catch (err) {
-        console.warn('[TTS] Synthesis exception, falling back to Audio stream:', err);
-        playAudioStream(cleaned, lang).catch(() => notifyState(false));
-      }
-    } else {
-      // For non-Arabic regional languages (Tamil, Hindi, etc.) without native voice packs:
-      // Use Google TTS Audio stream which provides authentic crystal-clear speech
-      console.info(`[TTS] No native voice found in browser for "${locale}". Using high-fidelity audio stream for lang="${lang}".`);
-      playAudioStream(cleaned, lang).catch((err) => {
-        console.warn('[TTS] Audio stream failed, attempting browser speech synthesis fallback:', err);
-        if ('speechSynthesis' in window) {
-          const fallbackUtterance = new SpeechSynthesisUtterance(cleaned);
-          fallbackUtterance.rate = 0.92;
-          fallbackUtterance.pitch = 1.15;
-          fallbackUtterance.lang = locale;
-          fallbackUtterance.onstart = () => notifyState(true);
-          fallbackUtterance.onend = () => notifyState(false);
-          fallbackUtterance.onerror = () => notifyState(false);
-          window.speechSynthesis.speak(fallbackUtterance);
-        }
+    if (!matchingVoice && lang !== 'en') {
+      console.info(`[TTS] No native voice installed for "${lang}". Using language-accurate phonetic fallback.`);
+      
+      // Notify listeners about missing voice so UI can show a gentle badge if desired
+      notifyVoiceAlert({
+        type: 'VOICE_PACK_NOTE',
+        message: `System using phonetics for ${LANG_NAMES[lang] || lang} (no native OS voice detected).`,
+        lang
       });
+
+      // Find an English voice (Indian English or UK/US English) that articulates phonetics clearly
+      voiceToUse = pickVoiceForLocale(allVoices, 'en-IN') || pickVoiceForLocale(allVoices, 'en-US') || allVoices[0];
+      langToSet = voiceToUse ? voiceToUse.lang : 'en-US';
+
+      // If we have structured announcement data, generate natural phonetics
+      if (lastAnnouncementData) {
+        textToSpeak = getPhoneticFallback(lastAnnouncementData, lang);
+      }
     }
-  }, 350);
+
+    try {
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      utterance.rate = (lang === 'ar' || lang === 'ta' || lang === 'ml') ? 0.88 : 0.92;
+      utterance.pitch = 1.05;
+      utterance.lang = langToSet;
+      if (voiceToUse) {
+        utterance.voice = voiceToUse;
+      }
+
+      utterance.onstart = () => {
+        notifyState(true);
+      };
+
+      utterance.onend = () => {
+        notifyState(false);
+      };
+
+      utterance.onerror = (e) => {
+        notifyState(false);
+        if (e.error !== 'interrupted' && e.error !== 'canceled') {
+          console.warn('[TTS] Speech synthesis error:', e.error);
+        }
+      };
+
+      window.speechSynthesis.speak(utterance);
+      console.info(`[TTS] Spoken successfully in [${lang}]: "${textToSpeak.substring(0, 60)}..."`);
+    } catch (err) {
+      console.error('[TTS] Speech synthesis exception:', err);
+      notifyState(false);
+    }
+  }, 320);
 }
 
 /**
- * AUTOMATIC NURSE / CARETAKER VOICE ANNOUNCEMENT
- * Instructs nurses or caretakers to collect patients and escort them to the doctor's room.
- *
- * English:
- * "Attention Nurse Sarah. Please take responsibility for Patient ID P1025, John Smith. Escort the patient to Dr. Kumar's consultation room, Room Number 204. Please collect the patient from the waiting area."
- *
- * Arabic:
- * "انتباه، الممرضة سارة. يرجى استلام المريض رقم P1025، جون سميث، ومرافقته إلى غرفة الاستشارة الخاصة بالدكتور كومار، رقم الغرفة 204. يرجى اصطحاب المريض من منطقة الانتظار."
+ * Stop any current speech playback
+ */
+export function stopSpeaking() {
+  if (currentAudio) {
+    try {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    } catch {}
+    currentAudio = null;
+  }
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.cancel();
+    } catch {}
+  }
+  notifyState(false);
+}
+
+export function isCurrentlySpeaking() {
+  return isSpeakingState;
+}
+
+/**
+ * Structured announcement data generator for all 9 languages.
+ * Speaks the COMPLETE announcement with patient name, token, room, doctor, and instructions.
+ */
+export function speakFullAnnouncement(data, lang = 'en') {
+  if (!data) return;
+  lastAnnouncementData = { ...data };
+
+  const pName = data.patientName || 'Patient';
+  const tNum = data.tokenNumber || data.token || 'CARD-101';
+  const dName = data.doctorName || 'Doctor';
+  const dept = data.department || 'General Medicine';
+  const room = data.roomNumber || 'Room 1';
+  const type = data.type || 'call';
+
+  let message = '';
+
+  if (type === 'call') {
+    switch (lang) {
+      case 'ar':
+        message = `نداء للمريض صاحب الرمز ${tNum}، ${pName}. يرجى التوجه إلى عيادة ${dept}، الغرفة رقم ${room}. الدكتور ${dName} في انتظارك الآن.`;
+        break;
+      case 'ta':
+        message = `நோயாளி டோக்கன் எண் ${tNum}, ${pName}. தயவுசெய்து ${dept} துறை, அறை எண் ${room}-க்கு வரவும். மருத்துவர் ${dName} உங்களுக்காக காத்திருக்கிறார்.`;
+        break;
+      case 'hi':
+        message = `मरीज़ टोकन संख्या ${tNum}, ${pName}। कृपया ${dept} विभाग, कमरा नंबर ${room} में पधारें। डॉक्टर ${dName} आपका इंतज़ार कर रहे हैं।`;
+        break;
+      case 'te':
+        message = `రోగి టోకెన్ సంఖ్య ${tNum}, ${pName}. దయచేసి ${dept} విభాగం, గది సంఖ్య ${room} వద్దకు వెళ్లండి. డాక్టర్ ${dName} మీ కోసం వేచి ఉన్నారు.`;
+        break;
+      case 'kn':
+        message = `ರೋಗಿ ಟೋಕನ್ ಸಂಖ್ಯೆ ${tNum}, ${pName}. ದಯವಿಟ್ಟು ${dept} ವಿಭಾಗ, ಕೊಠಡಿ ಸಂಖ್ಯೆ ${room} ಕ್ಕೆ ಬನ್ನಿ. ವೈದ್ಯರಾದ ${dName} ನಿಮಗಾಗಿ ಕಾಯುತ್ತಿದ್ದಾರೆ.`;
+        break;
+      case 'ml':
+        message = `രോഗി ടോക്കൺ നമ്പർ ${tNum}, ${pName}. ദയവായി ${dept} വിഭാഗം, മുറി നമ്പർ ${room}-ലേക്ക് വരൂ. ഡോക്ടർ ${dName} നിങ്ങൾക്കായി കാത്തിരിക്കുന്നു.`;
+        break;
+      case 'bn':
+        message = `রোগী টোকেন নম্বর ${tNum}, ${pName}। অনুগ্রহ করে ${dept} বিভাগ, রুম নম্বর ${room}-এ আসুন। ডাক্তার ${dName} আপনার জন্য অপেক্ষা করছেন।`;
+        break;
+      case 'mr':
+        message = `रुग्ण टोकन क्रमांक ${tNum}, ${pName}. कृपया ${dept} विभाग, खोली क्रमांक ${room} मध्ये जावे. डॉक्टर ${dName} आपली वाट पाहत आहेत.`;
+        break;
+      default:
+        message = `Patient ${pName}, Token number ${tNum}. Please proceed to ${dept}, Room number ${room}. Doctor ${dName} is waiting for you.`;
+        break;
+    }
+  } else if (type === 'registered') {
+    switch (lang) {
+      case 'ar':
+        message = `تم تسجيل المريض ${pName} بنجاح. رقم الرمز الخاص بك هو ${tNum}. يرجى التوجه إلى عيادة ${dept}.`;
+        break;
+      case 'ta':
+        message = `நோயாளி ${pName} பதிவு முடிந்தது. உங்கள் டோக்கன் எண் ${tNum}. ${dept} துறைக்கு செல்லவும்.`;
+        break;
+      case 'hi':
+        message = `मरीज़ ${pName} का पंजीकरण सफल रहा। आपकी टोकन संख्या ${tNum} है। कृपया ${dept} विभाग में जाएँ।`;
+        break;
+      case 'te':
+        message = `రోగి ${pName} నమోదు విజయవంతమైంది. మీ టోకెన్ సంఖ్య ${tNum}. ${dept} విభాగానికి వెళ్లండి.`;
+        break;
+      case 'kn':
+        message = `ರೋಗಿ ${pName} ನೋಂದಣಿ ಯಶಸ್ವಿಯಾಗಿದೆ. ನಿಮ್ಮ ಟೋಕನ್ ಸಂಖ್ಯೆ ${tNum}. ${dept} ವಿಭಾಗಕ್ಕೆ ಹೋಗಿ.`;
+        break;
+      case 'ml':
+        message = `രോഗി ${pName} രജിസ്ട്രേഷൻ വിജയകരം. നിങ്ങളുടെ ടോക്കൺ നമ്പർ ${tNum}. ${dept} വിഭാഗത്തിലേക്ക് പോകുക.`;
+        break;
+      case 'bn':
+        message = `রোগী ${pName}-এর নিবন্ধন সম্পন্ন হয়েছে। আপনার টোকেন নম্বর ${tNum}। ${dept} বিভাগে যান।`;
+        break;
+      case 'mr':
+        message = `रुग्ण ${pName} नोंदणी यशस्वी झाली. आपला टोकन क्रमांक ${tNum} आहे. ${dept} विभागात जावे.`;
+        break;
+      default:
+        message = `Registration completed for patient ${pName}. Your token number is ${tNum}. Please proceed to ${dept}.`;
+        break;
+    }
+  } else if (type === 'emergency') {
+    switch (lang) {
+      case 'ar':
+        message = `تنبيه طوارئ فوري! المريض ${pName}، الرمز ${tNum}. يرجى التوجه مباشرة إلى قسم الحوادث والطوارئ فوراً.`;
+        break;
+      case 'ta':
+        message = `உடனடி அவசர எச்சரிக்கை! நோயாளி ${pName}, டோக்கன் ${tNum}. உடனடியாக அவசர சிகிச்சை பிரிவுக்கு செல்லவும்.`;
+        break;
+      case 'hi':
+        message = `आपातकालीन सूचना! मरीज़ ${pName}, टोकन ${tNum}। कृपया तुरंत आपातकालीन कक्ष में पहुँचें।`;
+        break;
+      case 'te':
+        message = `అత్యవసర హెచ్చరిక! రోగి ${pName}, టోకెన్ ${tNum}. వెంటనే ఎమర్జెన్సీ వార్డుకు వెళ్లండి.`;
+        break;
+      case 'kn':
+        message = `ತುರ್ತು ಎಚ್ಚರಿಕೆ! ರೋಗಿ ${pName}, ಟೋಕನ್ ${tNum}. ತಕ್ಷಣ ತುರ್ತು ಚಿಕಿತ್ಸಾ ವಿಭಾಗಕ್ಕೆ ಬನ್ನಿ.`;
+        break;
+      case 'ml':
+        message = `അടിയന്തര മുന്നറിയിപ്പ്! രോഗി ${pName}, ടോക്കൺ ${tNum}. ഉടൻ തന്നെ എമർജൻസി വാർഡിലേക്ക് വരൂ.`;
+        break;
+      case 'bn':
+        message = `জরুরি সতর্কতা! রোগী ${pName}, টোকেন ${tNum}। অবিলম্বে জরুরি ওয়ার্ডে উপস্থিত হন।`;
+        break;
+      case 'mr':
+        message = `तात्काळ आपत्कालीन इशारा! रुग्ण ${pName}, टोकन ${tNum}. त्वरित आपत्कालीन कक्षात हजर राहावे.`;
+        break;
+      default:
+        message = `Emergency alert! Patient ${pName}, Token ${tNum}. Please proceed directly to the Emergency Trauma Bay immediately.`;
+        break;
+    }
+  } else {
+    // General / Language change announcement
+    switch (lang) {
+      case 'ar':
+        message = `تم تغيير لغة الإعلانات إلى العربية في مستشفى العيادات الخارجية.`;
+        break;
+      case 'ta':
+        message = `ஓபிடி ஷா மருத்துவமனையின் அறிவிப்பு மொழி தமிழுக்கு மாற்றப்பட்டது.`;
+        break;
+      case 'hi':
+        message = `ओपीडी शा अस्पताल में घोषणा की भाषा हिन्दी चुनी गई है।`;
+        break;
+      case 'te':
+        message = `ఓపీడీ షా ఆసుపత్రిలో ప్రకటనల భాష తెలుగుగా మార్చబడింది.`;
+        break;
+      case 'kn':
+        message = `ಒಪಿಡಿ ಶಾ ಆಸ್ಪತ್ರೆಯಲ್ಲಿ ಪ್ರಕಟಣೆ ಭಾಷೆಯನ್ನು ಕನ್ನಡಕ್ಕೆ ಬದಲಾಯಿಸಲಾಗಿದೆ.`;
+        break;
+      case 'ml':
+        message = `ഒപിഡി ഷാ ആശുപത്രിയിലെ അറിയിപ്പ് ഭാഷ മലയാളമാക്കി മാറ്റി.`;
+        break;
+      case 'bn':
+        message = `ওপিডি শা হাসপাতালে ঘোষণার ভাষা বাংলা নির্বাচিত হয়েছে।`;
+        break;
+      case 'mr':
+        message = `ओपीडी शा रुग्णालयात घोषणेची भाषा मराठी करण्यात आली आहे.`;
+        break;
+      default:
+        message = `Announcement language set to English at OPD SHA Hospital.`;
+        break;
+    }
+  }
+
+  // Record into announcement history
+  const historyEntry = {
+    id: `ANNC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    timestamp: new Date().toISOString(),
+    patientId: data.patientId || tNum,
+    patientName: pName,
+    nurseName: data.nurseName || 'Nurse',
+    doctorName: dName,
+    roomNumber: room,
+    text: message,
+    lang,
+    status: isMutedState ? 'Pending (Muted)' : 'Announced'
+  };
+
+  announcementHistory.unshift(historyEntry);
+  if (announcementHistory.length > 50) {
+    announcementHistory = announcementHistory.slice(0, 50);
+  }
+  notifyHistory();
+
+  // Speak the complete announcement
+  speakText(message, lang);
+
+  return {
+    announced: true,
+    text: message,
+    historyEntry
+  };
+}
+
+/**
+ * Called when user selects a new language from the language dropdown.
+ * Immediately generates and speaks the full announcement in that exact language.
+ */
+export function handleLanguageChangeAnnouncement(newLang) {
+  if (lastAnnouncementData) {
+    // Re-speak the active patient announcement in the new language
+    speakFullAnnouncement(lastAnnouncementData, newLang);
+  } else {
+    // Speak a clear hospital confirmation in the newly selected language
+    speakFullAnnouncement({ type: 'lang_change' }, newLang);
+  }
+}
+
+export function setLastAnnouncement(data) {
+  lastAnnouncementData = data ? { ...data } : null;
+}
+
+export function getLastAnnouncement() {
+  return lastAnnouncementData ? { ...lastAnnouncementData } : null;
+}
+
+/**
+ * Nurse / Caretaker Voice Escort Announcement
  */
 export function announceNurseEscort({
   patientId,
@@ -411,94 +649,34 @@ export function announceNurseEscort({
 }) {
   if (!patientId) return { announced: false, reason: 'INVALID_PATIENT_ID' };
 
-  // Duplicate prevention key
   const assignmentKey = `${patientId}_${nurseName}_${doctorName}_${roomNumber}`;
   if (!force && announcedKeys.has(assignmentKey)) {
     console.info(`[TTS] Announcement already made for ${assignmentKey}. Skipping duplicate.`);
     return { announced: false, reason: 'DUPLICATE_SKIPPED' };
   }
 
-  // Construct announcement text based on selected language
-  let announcementText = '';
-  const cleanPatientName = patientName && patientName.trim() ? patientName.trim() : `ID ${patientId}`;
-
-  if (lang === 'ar') {
-    announcementText = `انتباه، الممرض(ة) ${nurseName}. يُرجى تولي مسؤولية المريض صاحب المعرف ${patientId}، ${cleanPatientName}. ومرافقته إلى غرفة استشارة الدكتور ${doctorName}، رقم الغرفة ${roomNumber}. يُرجى استلام المريض من منطقة الانتظار.`;
-  } else if (lang === 'hi') {
-    announcementText = `ध्यान दें नर्स ${nurseName}। कृपया मरीज आईडी ${patientId}, ${cleanPatientName} की जिम्मेदारी लें। मरीज को डॉक्टर ${doctorName} के परामर्श कक्ष संख्या ${roomNumber} में ले जाएँ। कृपया मरीज को प्रतीक्षालय से प्राप्त करें।`;
-  } else if (lang === 'ta') {
-    announcementText = `கவனிக்கவும் செவிலியர் ${nurseName}. நோயாளி எண் ${patientId}, ${cleanPatientName}-ஐ பொறுப்பேற்று, மருத்துவர் ${doctorName} அவர்களின் ஆலோசனை அறை எண் ${roomNumber}-க்கு அழைத்துச் செல்லவும். காத்திருப்பு அறையிலிருந்து நோயாளியை அழைத்துச் செல்லவும்.`;
-  } else {
-    // Default English
-    announcementText = `Attention Nurse ${nurseName}. Please take responsibility for Patient ID ${patientId}, ${cleanPatientName}. Escort the patient to Dr. ${doctorName}'s consultation room, Room Number ${roomNumber}. Please collect the patient from the waiting area.`;
-  }
-
-  // Mark assignment as announced
   announcedKeys.add(assignmentKey);
 
-  // Add to announcement history
-  const historyEntry = {
-    id: `ANNC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    timestamp: new Date().toISOString(),
+  return speakFullAnnouncement({
+    type: 'call',
     patientId,
-    patientName: cleanPatientName,
+    patientName,
     nurseName,
     doctorName,
     roomNumber,
-    text: announcementText,
-    lang,
-    status: isMutedState ? 'Pending (Muted)' : 'Announced'
-  };
-
-  announcementHistory.unshift(historyEntry);
-  if (announcementHistory.length > 50) {
-    announcementHistory = announcementHistory.slice(0, 50);
-  }
-  notifyHistory();
-
-  // Trigger speech
-  speakText(announcementText, lang);
-
-  return {
-    announced: true,
-    text: announcementText,
-    historyEntry
-  };
+    tokenNumber: patientId
+  }, lang);
 }
 
 // Patient calling announcement helper
-export function announcePatientCalling(tokenNumber, patientName, lang = 'en') {
-  let message = '';
-  switch (lang) {
-    case 'ar':
-      message = `رقم المريض ${tokenNumber}، ${patientName}، يرجى التوجه إلى غرفة الاستشارة فوراً.`;
-      break;
-    case 'ta':
-      message = `டோக்கன் எண் ${tokenNumber}, ${patientName}, தயவுசெய்து ஆலோசனை அறைக்கு வரவும்.`;
-      break;
-    case 'hi':
-      message = `टोकन संख्या ${tokenNumber}, ${patientName}, कृपया परामर्श कक्ष में पधारें।`;
-      break;
-    case 'te':
-      message = `టోకెన్ సంఖ్య ${tokenNumber}, ${patientName}, దయచేసి సంప్రదింపుల గదికి రండి.`;
-      break;
-    case 'kn':
-      message = `ಟೋಕನ್ ಸಂಖ್ಯೆ ${tokenNumber}, ${patientName}, ದಯವಿಟ್ಟು ಸಮಾಲೋಚನೆ ಕೊಠಡಿಗೆ ಬನ್ನಿ.`;
-      break;
-    case 'ml':
-      message = `ടോക്കൺ നമ്പർ ${tokenNumber}, ${patientName}, ദയവായി കൺസൾട്ടേഷൻ മുറിയിലേക്ക് വരൂ.`;
-      break;
-    case 'bn':
-      message = `টোকেন নম্বর ${tokenNumber}, ${patientName}, অনুগ্রহ করে পরামর্শ কক্ষে আসুন।`;
-      break;
-    case 'mr':
-      message = `टोकन क्रमांक ${tokenNumber}, ${patientName}, कृपया सल्लागार कक्षात यावे.`;
-      break;
-    default:
-      message = `Token number ${tokenNumber}, patient ${patientName}, please proceed to the consultation room.`;
-      break;
-  }
-  speakText(message, lang);
+export function announcePatientCalling(tokenNumber, patientName, lang = 'en', doctorName = 'Doctor', roomNumber = 'Room 1') {
+  return speakFullAnnouncement({
+    type: 'call',
+    tokenNumber,
+    patientName,
+    doctorName,
+    roomNumber
+  }, lang);
 }
 
 // No waiting patients announcement helper
@@ -534,24 +712,4 @@ export function announceNoWaitingPatients(lang = 'en') {
       break;
   }
   speakText(message, lang);
-}
-
-export function stopSpeaking() {
-  if (currentAudio) {
-    try {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-    } catch {}
-    currentAudio = null;
-  }
-  if ('speechSynthesis' in window) {
-    try {
-      window.speechSynthesis.cancel();
-    } catch {}
-  }
-  notifyState(false);
-}
-
-export function isCurrentlySpeaking() {
-  return isSpeakingState;
 }

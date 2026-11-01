@@ -7,25 +7,35 @@ import QueueTracker from './components/QueueTracker';
 import StaffDashboard from './components/StaffDashboard';
 import PatientSorting from './components/PatientSorting';
 import NearbyHospitalsMap from './components/NearbyHospitalsMap';
+import LoginPage from './components/LoginPage';
+import DoctorDashboard from './components/DoctorDashboard';
+import NurseDashboard from './components/NurseDashboard';
+import PatientPortal from './components/PatientPortal';
+import PrescriptionGenerator from './components/PrescriptionGenerator';
+import ReportsAnalytics from './components/ReportsAnalytics';
+import AdminDashboard from './components/AdminDashboard';
 import { translations } from './translations';
 import { fetchDepartments, registerPatient, fetchSlip } from './services/api';
-import { speakText, playHospitalChime } from './services/speech';
 import { 
-  HeartPulse, 
-  ShieldAlert, 
-  MapPin, 
-  Clock, 
-  Users, 
-  Phone, 
-  Accessibility, 
-  ExternalLink,
-  ChevronRight,
-  HelpCircle,
-  Stethoscope
-} from 'lucide-react';
+  speakText, 
+  playHospitalChime, 
+  handleLanguageChangeAnnouncement, 
+  speakFullAnnouncement 
+} from './services/speech';
+import { getCurrentUser, logout } from './services/auth';
+import { seedDemoData } from './services/db';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('register');
+  const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      return localStorage.getItem('hospital_dark_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   const [currentLang, setCurrentLang] = useState(() => {
     try {
       return localStorage.getItem('hospital_lang') || 'en';
@@ -33,10 +43,13 @@ export default function App() {
       return 'en';
     }
   });
+
   const [fontSizeLevel, setFontSizeLevel] = useState(1); // default large for hospital readability
   const [highContrast, setHighContrast] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [selectedDoctorForBooking, setSelectedDoctorForBooking] = useState(null);
+  const [prescriptionPatient, setPrescriptionPatient] = useState(null);
+
   const [slipData, setSlipData] = useState(() => {
     try {
       const saved = localStorage.getItem('hospital_last_slip');
@@ -45,6 +58,7 @@ export default function App() {
       return null;
     }
   });
+
   const [trackedToken, setTrackedToken] = useState(() => {
     try {
       return localStorage.getItem('hospital_last_token') || 'CARD-102';
@@ -54,6 +68,28 @@ export default function App() {
   });
 
   const t = translations[currentLang] || translations.en;
+
+  // Initial setup: ensure database demo records and departments exist
+  useEffect(() => {
+    try {
+      seedDemoData();
+    } catch (e) {
+      console.warn('Seeding note:', e);
+    }
+    loadDepartments();
+  }, []);
+
+  // Sync dark mode class to root HTML element
+  useEffect(() => {
+    try {
+      localStorage.setItem('hospital_dark_mode', darkMode ? 'true' : 'false');
+    } catch {}
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   // Load departments
   const loadDepartments = async () => {
@@ -67,15 +103,26 @@ export default function App() {
     }
   };
 
-  useEffect(() => {
-    loadDepartments();
-  }, []);
-
-  // Sync language selection, persistence and RTL / LTR layout
-  useEffect(() => {
+  // Sync language selection, persistence, RTL/LTR, and trigger full voice announcement
+  const handleLanguageChange = (newLang) => {
+    setCurrentLang(newLang);
     try {
-      localStorage.setItem('hospital_lang', currentLang);
+      localStorage.setItem('hospital_lang', newLang);
     } catch {}
+
+    if (newLang === 'ar') {
+      document.documentElement.setAttribute('dir', 'rtl');
+      document.documentElement.setAttribute('lang', 'ar');
+    } else {
+      document.documentElement.setAttribute('dir', 'ltr');
+      document.documentElement.setAttribute('lang', newLang);
+    }
+
+    // Immediately generate and speak the announcement in the exact newly selected language
+    handleLanguageChangeAnnouncement(newLang);
+  };
+
+  useEffect(() => {
     if (currentLang === 'ar') {
       document.documentElement.setAttribute('dir', 'rtl');
       document.documentElement.setAttribute('lang', 'ar');
@@ -84,6 +131,26 @@ export default function App() {
       document.documentElement.setAttribute('lang', currentLang);
     }
   }, [currentLang]);
+
+  // Auth handlers
+  const handleLoginSuccess = (user) => {
+    setCurrentUser(user);
+    if (user.role === 'admin') {
+      setActiveTab('admin');
+    } else if (user.role === 'doctor') {
+      setActiveTab('doctor');
+    } else if (user.role === 'nurse') {
+      setActiveTab('nurse');
+    } else {
+      setActiveTab('patient');
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setCurrentUser(null);
+    setActiveTab('register');
+  };
 
   // Handle successful patient registration
   const handleRegistered = async (formData) => {
@@ -101,47 +168,15 @@ export default function App() {
           localStorage.setItem('hospital_last_token', res.token);
         } catch {}
 
-        // Multilingual announcement for all 8 languages
+        // Full multilingual spoken announcement
         const isEmer = res.patient.is_emergency;
-        let announcement = '';
-        if (isEmer) {
-          switch (currentLang) {
-            case 'ar': announcement = `تم تأكيد تسجيل الطوارئ! رقم التذكرة ${res.token}. يرجى التوجه فوراً إلى غرفة الطوارئ والحوادث 1.`; break;
-            case 'ta': announcement = `அவசர பதிவு வெற்றிகரமானது! டோக்கன் எண் ${res.token}. ட்ராமா பே 1-க்கு உடனே செல்லவும்.`; break;
-            case 'hi': announcement = `आपातकालीन पंजीकरण सफल! टोकन संख्या ${res.token}। कृपया तुरंत ट्रॉमा बे 1 पर जाएँ।`; break;
-            case 'te': announcement = `అత్యవసర రిజిస్ట్రేషన్ పూర్తయింది! టోకెన్ సంఖ్య ${res.token}. వెంటనే ట్రామా బే 1కి వెళ్లండి.`; break;
-            case 'kn': announcement = `ತುರ್ತು ನೋಂದಣಿ ಯಶಸ್ವಿಯಾಗಿದೆ! ಟೋಕನ್ ಸಂಖ್ಯೆ ${res.token}. ತಕ್ಷಣ ಟ್ರಾಮಾ ಬೇ 1 ಕ್ಕೆ ಹೋಗಿ.`; break;
-            case 'ml': announcement = `അടിയന്തര രജിസ്ട്രേഷൻ വിജയകരം! ടോക്കൺ നമ്പർ ${res.token}. ഉടൻ ട്രോമ ബേ 1 ലേക്ക് പോകുക.`; break;
-            case 'bn': announcement = `জরুরি নিবন্ধন সফল হয়েছে! টোকেন নম্বর ${res.token}। অবিলম্বে ট্রমা বে ১-এ যান।`; break;
-            case 'mr': announcement = `आपत्कालीन नोंदणी यशस्वी! टोकन क्रमांक ${res.token}. त्वरित ट्रॉमा बे १ मध्ये जावे.`; break;
-            default: announcement = `Emergency Registration Confirmed! Token number ${res.token}. Please proceed directly to Trauma Bay 1.`; break;
-          }
-        } else if (res.patient.appointment_type === 'APPOINTMENT') {
-          switch (currentLang) {
-            case 'ar': announcement = `تم تأكيد حجز الموعد بنجاح! رقم تذكرتك هو ${res.token}.`; break;
-            case 'ta': announcement = `முன்பதிவு உறுதிசெய்யப்பட்டது! டோக்கன் எண் ${res.token}.`; break;
-            case 'hi': announcement = `टोकन अपॉइंटमेंट पुष्ट हुआ! टोकन संख्या ${res.token}।`; break;
-            case 'te': announcement = `అపాయింట్‌మెంట్ నిర్ధారించబడింది! మీ టోకెన్ సంఖ్య ${res.token}.`; break;
-            case 'kn': announcement = `ನೇಮಕಾತಿ ದೃಢೀಕರಿಸಲಾಗಿದೆ! ನಿಮ್ಮ ಟೋಕನ್ ಸಂಖ್ಯೆ ${res.token}.`; break;
-            case 'ml': announcement = `അപ്പോയിന്റ്മെന്റ് സ്ഥിരീകരിച്ചു! നിങ്ങളുടെ ടോക്കൺ നമ്പർ ${res.token}.`; break;
-            case 'bn': announcement = `অ্যাপয়েন্টমেন্ট নিশ্চিত হয়েছে! আপনার টোকেন নম্বর ${res.token}।`; break;
-            case 'mr': announcement = `अपॉइंटमेंट निश्चित झाली! आपला टोकन क्रमांक ${res.token} आहे.`; break;
-            default: announcement = `Token Appointment Confirmed! Your token is ${res.token}.`; break;
-          }
-        } else {
-          switch (currentLang) {
-            case 'ar': announcement = `تم تسجيل المريض بنجاح! رقم تذكرتك هو ${res.token}.`; break;
-            case 'ta': announcement = `பதிவு முடிந்தது! உங்கள் டோக்கன் எண் ${res.token}.`; break;
-            case 'hi': announcement = `पंजीकरण सफल हुआ! आपकी टोकन संख्या ${res.token} है।`; break;
-            case 'te': announcement = `రిజిస్ట్రేషన్ విజయవంతమైంది! మీ టోకెన్ సంఖ్య ${res.token}.`; break;
-            case 'kn': announcement = `ನೋಂದಣಿ ಯಶಸ್ವಿಯಾಗಿದೆ! ನಿಮ್ಮ ಟೋಕನ್ ಸಂಖ್ಯೆ ${res.token}.`; break;
-            case 'ml': announcement = `രജിസ്ട്രേഷൻ വിജയകരം! നിങ്ങളുടെ ടോക്കൺ നമ്പർ ${res.token}.`; break;
-            case 'bn': announcement = `নিবন্ধন সফল হয়েছে! আপনার টোকেন নম্বর ${res.token}।`; break;
-            case 'mr': announcement = `नोंदणी यशस्वी झाली! आपला टोकन क्रमांक ${res.token} आहे.`; break;
-            default: announcement = `Registration successful! Your token number is ${res.token}.`; break;
-          }
-        }
-        speakText(announcement, currentLang);
+        speakFullAnnouncement({
+          type: isEmer ? 'emergency' : 'registered',
+          patientName: res.patient.name,
+          tokenNumber: res.token,
+          department: res.patient.department,
+          roomNumber: res.patient.room || 'Room 1'
+        }, currentLang);
 
         setActiveTab('slip');
       }
@@ -163,33 +198,36 @@ export default function App() {
 
   const handleTriggerSOS = () => {
     setActiveTab('register');
-    let msg = '';
-    switch (currentLang) {
-      case 'ar': msg = 'تم تفعيل خدمة طوارئ الحوادث. يرجى التوجه فوراً إلى الطابق الأرضي، غرفة الطوارئ 1.'; break;
-      case 'ta': msg = 'அவசர சிகிச்சை சேவை இயக்கப்பட்டது. ட்ராமா பே 1-க்கு உடனே செல்லவும்.'; break;
-      case 'hi': msg = 'आपातकालीन ट्राइएज सेवा सक्रिय की गई। कृपया सीधे भू-तल ट्रॉमा बे 1 पर संपर्क करें।'; break;
-      case 'te': msg = 'అత్యవసర ట్రామా సేవ ప్రారంభించబడింది. వెంటనే గ్రౌండ్ ఫ్లోర్ ట్రామా బే 1కి వెళ్లండి.'; break;
-      case 'kn': msg = 'ತುರ್ತು ಚಿಕಿತ್ಸಾ ಸೇವೆ ಸಕ್ರಿಯಗೊಂಡಿದೆ. ತಕ್ಷಣ ನೆಲಮಹಡಿ ಟ್ರಾಮಾ ಬೇ 1 ಕ್ಕೆ ಹೋಗಿ.'; break;
-      case 'ml': msg = 'അടിയന്തര ട്രോമ സർവീസ് സജീവമാക്കി. ഉടൻ ഗ്രൗണ്ട് ഫ്ലോർ ട്രോമ ബേ 1 ലേക്ക് പോകുക.'; break;
-      case 'bn': msg = 'জরুরি সেবা সক্রিয় করা হয়েছে। অনুগ্রহ করে নিচতলার ট্রমা বে ১-এ যোগাযোগ করুন।'; break;
-      case 'mr': msg = 'आपत्कालीन सेवा सक्रिय केली गेली आहे. कृपया त्वरित तळमजल्यावरील ट्रॉमा बे १ मध्ये जावे.'; break;
-      default: msg = 'Emergency trauma service activated. Proceed directly to Ground Floor Trauma Bay 1.'; break;
-    }
-    speakText(msg, currentLang);
+    speakFullAnnouncement({
+      type: 'emergency',
+      patientName: 'Emergency Trauma Patient',
+      tokenNumber: 'SOS-999',
+      department: 'Emergency & Trauma Bay',
+      roomNumber: 'Bay 1'
+    }, currentLang);
+  };
+
+  const handleOpenPrescription = (patient) => {
+    setPrescriptionPatient(patient);
+    setActiveTab('prescription');
   };
 
   return (
-    <div className={`min-h-screen flex flex-col font-scale-${fontSizeLevel} ${highContrast ? 'high-contrast dark' : ''}`}>
+    <div className={`min-h-screen flex flex-col font-scale-${fontSizeLevel} ${highContrast ? 'high-contrast dark' : ''} ${darkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
       {/* Accessible Header */}
       <Header
         activeTab={activeTab}
         onTabChange={setActiveTab}
         currentLang={currentLang}
-        onLangChange={setCurrentLang}
+        onLangChange={handleLanguageChange}
         fontSizeLevel={fontSizeLevel}
         onFontSizeChange={setFontSizeLevel}
         highContrast={highContrast}
         onToggleContrast={() => setHighContrast(!highContrast)}
+        darkMode={darkMode}
+        onToggleDarkMode={() => setDarkMode(!darkMode)}
+        currentUser={currentUser}
+        onLogout={handleLogout}
         onTriggerSOS={handleTriggerSOS}
         hasSlip={Boolean(slipData)}
         t={t}
@@ -197,6 +235,16 @@ export default function App() {
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* LOGIN PORTAL TAB */}
+        {activeTab === 'login' && (
+          <LoginPage
+            onLogin={handleLoginSuccess}
+            currentLang={currentLang}
+            darkMode={darkMode}
+            t={t}
+          />
+        )}
+
         {/* TAB 1: OPD REGISTRATION & APPOINTMENTS */}
         {activeTab === 'register' && (
           <RegistrationForm
@@ -239,21 +287,20 @@ export default function App() {
           />
         )}
 
-        {/* TAB 5: NEARBY HOSPITALS & DOCTOR AVAILABILITY */}
+        {/* TAB 5: REPORTS & ANALYTICS */}
+        {activeTab === 'reports' && (
+          <ReportsAnalytics
+            currentLang={currentLang}
+            t={t}
+            darkMode={darkMode}
+          />
+        )}
+
+        {/* TAB 6: NEARBY HOSPITALS & DOCTOR AVAILABILITY */}
         {activeTab === 'nearby' && (
           <NearbyHospitalsMap
             currentLang={currentLang}
             t={t}
-          />
-        )}
-
-        {/* TAB 6: STAFF & TRIAGE DASHBOARD */}
-        {activeTab === 'staff' && (
-          <StaffDashboard
-            currentLang={currentLang}
-            t={t}
-            onDataChanged={loadDepartments}
-            onTabChange={setActiveTab}
           />
         )}
 
@@ -263,6 +310,78 @@ export default function App() {
             currentLang={currentLang}
             t={t}
             onDataChanged={loadDepartments}
+          />
+        )}
+
+        {/* TAB 8: STAFF & TRIAGE DASHBOARD */}
+        {activeTab === 'staff' && (
+          <StaffDashboard
+            currentLang={currentLang}
+            t={t}
+            onDataChanged={loadDepartments}
+            onTabChange={setActiveTab}
+          />
+        )}
+
+        {/* TAB 9: DOCTOR DASHBOARD */}
+        {activeTab === 'doctor' && (
+          <DoctorDashboard
+            currentLang={currentLang}
+            t={t}
+            darkMode={darkMode}
+            onWritePrescription={(patient) => handleOpenPrescription(patient)}
+            onViewPatient={(patientId) => {
+              setTrackedToken(patientId);
+              setActiveTab('track');
+            }}
+          />
+        )}
+
+        {/* TAB 10: NURSE DASHBOARD */}
+        {activeTab === 'nurse' && (
+          <NurseDashboard
+            currentLang={currentLang}
+            t={t}
+            darkMode={darkMode}
+          />
+        )}
+
+        {/* TAB 11: PATIENT SELF-SERVICE PORTAL */}
+        {activeTab === 'patient' && (
+          <PatientPortal
+            currentLang={currentLang}
+            t={t}
+            darkMode={darkMode}
+          />
+        )}
+
+        {/* TAB 12: DIGITAL PRESCRIPTION GENERATOR */}
+        {activeTab === 'prescription' && (
+          <PrescriptionGenerator
+            patient={prescriptionPatient}
+            doctor={{
+              id: currentUser?.username || 'DOC-101',
+              name: currentUser?.name || 'Dr. Vikram Sharma',
+              department: currentUser?.department || 'General Medicine',
+              room: 'Room 101'
+            }}
+            currentLang={currentLang}
+            t={t}
+            darkMode={darkMode}
+            onClose={() => setActiveTab(currentUser?.role === 'doctor' ? 'doctor' : 'register')}
+            onSaved={() => {
+              if (currentUser?.role === 'doctor') setActiveTab('doctor');
+            }}
+          />
+        )}
+
+        {/* TAB 13: ADMIN MASTER DASHBOARD */}
+        {activeTab === 'admin' && (
+          <AdminDashboard
+            currentLang={currentLang}
+            t={t}
+            darkMode={darkMode}
+            onNavigate={(tab) => setActiveTab(tab)}
           />
         )}
       </main>
@@ -277,7 +396,7 @@ export default function App() {
                 OPD SHA Hospital
               </p>
               <p className="text-slate-400 text-xs mt-0.5">
-                Accessible OPD Registration, Doctor Appointments, Patient Sorting & Navigation Companion
+                Accessible OPD Registration, Multilingual AI Voice Announcements & Navigation Companion
               </p>
             </div>
           </div>
@@ -289,7 +408,7 @@ export default function App() {
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-indigo-400" />
-              <span>Doctor Appointment System</span>
+              <span>Full 9-Language Voice System</span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-red-400" />

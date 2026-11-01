@@ -15,7 +15,13 @@ import {
   Sparkles,
   Stethoscope,
   MapPin,
-  ArrowUpDown
+  ArrowUpDown,
+  LogIn,
+  LogOut,
+  User,
+  BarChart3,
+  ShieldCheck,
+  HeartPulse
 } from 'lucide-react';
 import { subscribeSpeechState, stopSpeaking } from '../services/speech';
 
@@ -28,6 +34,10 @@ export default function Header({
   onFontSizeChange = () => {},
   highContrast = false,
   onToggleContrast = () => {},
+  darkMode = false,
+  onToggleDarkMode = () => {},
+  currentUser = null,
+  onLogout = () => {},
   onTriggerSOS = () => {},
   hasSlip = false,
   t = {}
@@ -68,7 +78,7 @@ export default function Header({
               </button>
             )}
 
-            {/* Language Selector (Arabic + 8 Indian Languages) */}
+            {/* Language Selector (All 9 Languages Supported) */}
             <div className="flex items-center gap-1.5 bg-slate-800 p-1 rounded-xl border border-slate-700">
               <Languages className="w-3.5 h-3.5 text-indigo-400 ml-1.5 shrink-0" />
               <select
@@ -88,6 +98,15 @@ export default function Header({
                 <option value="mr" className="bg-slate-900 text-white">मराठी (Marathi)</option>
               </select>
             </div>
+
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={onToggleDarkMode}
+              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition"
+              title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {darkMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-slate-300" />}
+            </button>
 
             {/* Font Size Adjuster (A- / A / A+) */}
             <div className="flex items-center gap-1 bg-slate-800 p-1 rounded-lg border border-slate-700">
@@ -123,17 +142,17 @@ export default function Header({
               title="Toggle high contrast accessibility theme"
             >
               <Sun className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{t.accessibility?.contrast || 'High Contrast'}</span>
+              <span className="hidden sm:inline">{t.accessibility?.contrast || 'Contrast'}</span>
             </button>
 
             {/* Quick Emergency SOS button */}
             <button
               onClick={onTriggerSOS}
-              className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-lg flex items-center gap-1 text-[11px] shadow-sm animate-bounce"
+              className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-lg flex items-center gap-1 text-[11px] shadow-sm animate-pulse"
               title="Instant Emergency Trauma Registration"
             >
               <ShieldAlert className="w-3.5 h-3.5 text-white" />
-              <span>{t.accessibility?.sos || '🚨 Emergency SOS'}</span>
+              <span>{t.accessibility?.sos || '🚨 SOS'}</span>
             </button>
           </div>
         </div>
@@ -165,15 +184,15 @@ export default function Header({
         </div>
 
         {/* Global Navigation Tabs */}
-        <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-1 md:pb-0">
+        <nav className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto pb-1 md:pb-0">
           {[
             { id: 'register', label: t.tabs?.register || 'OPD Registration', icon: FileText },
-            { id: 'doctors', label: t.tabs?.doctors || 'Doctors Available', icon: Stethoscope },
+            { id: 'doctors', label: t.tabs?.doctors || 'Doctors Roster', icon: Stethoscope },
             { id: 'sorting', label: t.tabs?.sorting || 'Patient Sorting', icon: ArrowUpDown },
             { id: 'slip', label: t.tabs?.slip || 'My OPD Slip', icon: Sparkles, badge: hasSlip },
-            { id: 'track', label: t.tabs?.track || 'Track Queue & Map', icon: Clock },
-            { id: 'nearby', label: t.tabs?.nearby || 'Nearby Hospitals', icon: MapPin },
-            { id: 'staff', label: t.tabs?.staff || 'Staff Dashboard', icon: UserCheck }
+            { id: 'track', label: t.tabs?.track || 'Track Queue', icon: Clock },
+            { id: 'reports', label: 'Reports', icon: BarChart3 },
+            { id: 'nearby', label: 'Nearby Map', icon: MapPin },
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -182,13 +201,13 @@ export default function Header({
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`px-3.5 sm:px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 whitespace-nowrap transition-all relative ${
+                className={`px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 whitespace-nowrap transition-all relative ${
                   isActive
                     ? 'bg-indigo-600 text-white shadow-md'
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                 <span>{tab.label}</span>
                 {tab.badge && (
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping absolute top-2 right-2" />
@@ -196,6 +215,49 @@ export default function Header({
               </button>
             );
           })}
+
+          {/* User Auth Portal / Profile Button */}
+          {currentUser ? (
+            <div className="flex items-center gap-1 ml-1 pl-2 border-l border-slate-200 dark:border-slate-800">
+              <button
+                onClick={() => {
+                  if (currentUser.role === 'admin') onTabChange('admin');
+                  else if (currentUser.role === 'doctor') onTabChange('doctor');
+                  else if (currentUser.role === 'nurse') onTabChange('nurse');
+                  else onTabChange('patient');
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+                  ['admin', 'doctor', 'nurse', 'patient', 'prescription'].includes(activeTab)
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200'
+                }`}
+                title={`Open ${currentUser.role} dashboard`}
+              >
+                <span>{currentUser.avatar || '👤'}</span>
+                <span className="hidden sm:inline font-semibold">{currentUser.name?.split(' ')[0]}</span>
+              </button>
+
+              <button
+                onClick={onLogout}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition"
+                title="Sign out of portal"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => onTabChange('login')}
+              className={`ml-1 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+                activeTab === 'login'
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100'
+              }`}
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Login</span>
+            </button>
+          )}
         </nav>
       </div>
     </header>
