@@ -28,6 +28,7 @@ app.use('/api/auth', authRoutes);
 // Serve built frontend if exists
 const clientDist = path.join(__dirname, '..', 'client', 'dist');
 app.use(express.static(clientDist));
+app.use('/OPD-SHA', express.static(clientDist));
 
 // SPA fallback for any non-API route (Express 5 compatible)
 app.use((req, res, next) => {
