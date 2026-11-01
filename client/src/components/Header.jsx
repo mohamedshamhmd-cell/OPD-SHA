@@ -99,6 +99,12 @@ export default function Header({
               </select>
             </div>
 
+            {/* Alison Krauss Voice Persona Badge */}
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-950/90 border border-indigo-700/60 text-[11px] font-bold text-indigo-300 select-none shadow-xs" title="Acoustic Voice Persona: Alison Krauss">
+              <Sparkles className="w-3 h-3 text-amber-300 animate-pulse" />
+              <span>Voice: Alison Krauss</span>
+            </div>
+
             {/* Dark Mode Toggle */}
             <button
               onClick={onToggleDarkMode}

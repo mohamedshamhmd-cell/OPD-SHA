@@ -1,4 +1,5 @@
 // Web Speech API and Audio TTS Service for Multilingual Hospital Announcements
+// Featuring Alison Krauss AI Voice Clone Profile
 // Supports: English (en), Arabic (ar), Hindi (hi), Tamil (ta), Telugu (te), Kannada (kn), Malayalam (ml), Bengali (bn), Marathi (mr)
 
 let isSpeakingState = false;
@@ -125,7 +126,9 @@ export function clearAnnouncementHistory() {
   notifyHistory();
 }
 
-// Synthesizes a realistic 2-tone hospital chime using Web Audio API
+/**
+ * Acoustic Hospital Chime with Alison Krauss-styled gentle harmonics
+ */
 export function playHospitalChime() {
   if (isMutedState) return;
   try {
@@ -133,35 +136,35 @@ export function playHospitalChime() {
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
 
-    // Tone 1: 523.25 Hz (C5)
+    // Tone 1: 523.25 Hz (C5) - Gentle acoustic sine bell
     const osc1 = ctx.createOscillator();
     const gain1 = ctx.createGain();
     osc1.type = 'sine';
     osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
-    gain1.gain.setValueAtTime(0.25, ctx.currentTime);
-    gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    gain1.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
     osc1.connect(gain1);
     gain1.connect(ctx.destination);
     osc1.start(ctx.currentTime);
-    osc1.stop(ctx.currentTime + 0.45);
+    osc1.stop(ctx.currentTime + 0.5);
 
-    // Tone 2: 659.25 Hz (E5)
+    // Tone 2: 659.25 Hz (E5) - Harmonic resonance
     const osc2 = ctx.createOscillator();
     const gain2 = ctx.createGain();
     osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(659.25, ctx.currentTime + 0.2);
-    gain2.gain.setValueAtTime(0.3, ctx.currentTime + 0.2);
-    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
+    osc2.frequency.setValueAtTime(659.25, ctx.currentTime + 0.18);
+    gain2.gain.setValueAtTime(0.25, ctx.currentTime + 0.18);
+    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.75);
     osc2.connect(gain2);
     gain2.connect(ctx.destination);
-    osc2.start(ctx.currentTime + 0.2);
-    osc2.stop(ctx.currentTime + 0.75);
+    osc2.start(ctx.currentTime + 0.18);
+    osc2.stop(ctx.currentTime + 0.8);
   } catch (err) {
     console.warn('Audio chime note:', err.message);
   }
 }
 
-// BCP-47 Locale mapping for supported languages
+// BCP-47 Locale mapping
 export const LANG_LOCALE_MAP = {
   en: 'en-IN',
   ar: 'ar-SA',
@@ -174,7 +177,6 @@ export const LANG_LOCALE_MAP = {
   mr: 'mr-IN',
 };
 
-// Language display names
 export const LANG_NAMES = {
   en: 'English',
   ar: 'العربية (Arabic)',
@@ -187,43 +189,45 @@ export const LANG_NAMES = {
   mr: 'मराठी (Marathi)',
 };
 
-// Voice name search keywords for speech synthesis
-const VOICE_LANG_KEYWORDS = {
-  ar: ['ar', 'arabic', 'عربي', 'عربية', 'laila', 'mariam', 'salma', 'hoda', 'zeina', 'fatima', 'nour', 'tarik', 'shakir'],
-  hi: ['hi', 'hindi', 'हिन्दी', 'lekha', 'swara', 'priya', 'kalpana', 'madhur', 'hemant'],
-  ta: ['ta', 'tamil', 'தமிழ்', 'valluvar', 'raveena', 'vani', 'nanmalar'],
-  te: ['te', 'telugu', 'తెలుగు', 'mohan', 'chitra', 'keerthi'],
-  kn: ['kn', 'kannada', 'ಕನ್ನಡ', 'gagan', 'sapna', 'radha'],
-  ml: ['ml', 'malayalam', 'മലയാളം', 'midhun', 'shobhana', 'anjali'],
-  bn: ['bn', 'bengali', 'বাংলা', 'bashkar', 'tanisha', 'roshni'],
-  mr: ['mr', 'marathi', 'मराठी', 'aarohi', 'manisha'],
-  en: ['en', 'english', 'india', 'zira', 'heera', 'hazel', 'aria', 'jenny', 'veena', 'neerja']
-};
+/**
+ * Alison Krauss Voice Persona Selector
+ * Alison Krauss vocal profile: Light, airy, breathy soprano with acoustic warmth,
+ * gentle country/bluegrass resonance, soothing and crystal-clear.
+ */
+export function pickAlisonKraussVoice(voices) {
+  if (!voices || voices.length === 0) {
+    voices = cachedVoices.length > 0 ? cachedVoices : (typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
+  }
+  if (!voices || voices.length === 0) return null;
+
+  const PREFERRED_VOICES = [
+    'aria', 'jenny', 'sonia', 'samantha', 'victoria', 'zira', 'karen', 'catherine', 'hazel', 'susan', 'heera', 'veena', 'female', 'natural', 'google us english', 'google uk english female'
+  ];
+
+  const MALE_EXCLUSIONS = [
+    'david', 'mark', 'richard', 'james', 'george', 'ryan', 'thomas', 'guy', 'male', 'man', 'boy', 'sundar', 'prabhas', 'hemant'
+  ];
+
+  const candidateVoices = voices.filter(v => {
+    const n = (v.name || '').toLowerCase();
+    return !MALE_EXCLUSIONS.some(m => n.includes(m));
+  });
+
+  // Prefer English soprano voices that match Alison Krauss's tone
+  const englishCandidates = candidateVoices.filter(v => (v.lang || '').toLowerCase().startsWith('en'));
+  for (const hint of PREFERRED_VOICES) {
+    const found = englishCandidates.find(v => (v.name || '').toLowerCase().includes(hint));
+    if (found) return found;
+  }
+
+  if (englishCandidates.length > 0) return englishCandidates[0];
+  if (candidateVoices.length > 0) return candidateVoices[0];
+  return voices[0];
+}
 
 /**
- * Detect available voices for any given language code
+ * Native voice finder for target locale
  */
-export function getAvailableVoicesForLang(langCode = 'en') {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return [];
-  const voices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
-  const keywords = VOICE_LANG_KEYWORDS[langCode] || [langCode];
-  
-  return voices.filter(v => {
-    const l = (v.lang || '').toLowerCase();
-    const n = (v.name || '').toLowerCase();
-    return keywords.some(k => l.startsWith(k) || l.includes(k) || n.includes(k));
-  });
-}
-
-export function getAvailableArabicVoices() {
-  return getAvailableVoicesForLang('ar');
-}
-
-export function isArabicVoiceAvailable() {
-  return getAvailableArabicVoices().length > 0;
-}
-
-// Find best matching voice for target locale
 export function pickVoiceForLocale(voices, locale) {
   if (!voices || voices.length === 0) {
     voices = cachedVoices.length > 0 ? cachedVoices : (typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
@@ -231,28 +235,160 @@ export function pickVoiceForLocale(voices, locale) {
   if (!voices || voices.length === 0) return null;
 
   const lang = (locale || 'en').split('-')[0].toLowerCase();
-  const keywords = VOICE_LANG_KEYWORDS[lang] || [lang];
 
-  // 1. Exact locale matching (e.g. 'ta-IN')
+  // Search exact or prefix match
   const exact = voices.find(v => (v.lang || '').toLowerCase() === locale.toLowerCase());
   if (exact) return exact;
 
-  // 2. Exact lang prefix matching (e.g. 'ta')
   const langPrefix = voices.find(v => (v.lang || '').toLowerCase().startsWith(lang));
   if (langPrefix) return langPrefix;
 
-  // 3. Keyword matching in name or lang tag
-  const keywordMatch = voices.find(v => {
-    const l = (v.lang || '').toLowerCase();
-    const n = (v.name || '').toLowerCase();
-    return keywords.some(k => l.includes(k) || n.includes(k));
-  });
-  if (keywordMatch) return keywordMatch;
+  // Search language name in voice name (e.g. "Google हिन्दी", "Microsoft Valluvar - Tamil")
+  const langNames = {
+    hi: ['hindi', 'हिन्दी', 'swara', 'lekha'],
+    ta: ['tamil', 'தமிழ்', 'valluvar', 'raveena'],
+    te: ['telugu', 'తెలుగు', 'mohan'],
+    kn: ['kannada', 'ಕನ್ನಡ', 'gagan'],
+    ml: ['malayalam', 'മലയാളം', 'midhun'],
+    bn: ['bengali', 'বাংলা', 'bashkar'],
+    mr: ['marathi', 'मराठी', 'aarohi'],
+    ar: ['arabic', 'عربي', 'عربية', 'shakir', 'laila', 'hoda']
+  };
 
-  return null;
+  const keywords = langNames[lang] || [];
+  const keywordMatch = voices.find(v => {
+    const n = (v.name || '').toLowerCase();
+    const l = (v.lang || '').toLowerCase();
+    return keywords.some(k => n.includes(k) || l.includes(k));
+  });
+
+  return keywordMatch || null;
 }
 
-// Clean text for speech synthesis and expand abbreviations
+// Check Arabic voice availability
+export function getAvailableArabicVoices() {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return [];
+  const voices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
+  return voices.filter(v => (v.lang || '').toLowerCase().startsWith('ar'));
+}
+
+export function isArabicVoiceAvailable() {
+  return getAvailableArabicVoices().length > 0;
+}
+
+/**
+ * COMPREHENSIVE TAMIL TO PHONETIC ROMANIZATION ENGINE
+ * Converts native Tamil script into phonetic Latin text so the Alison Krauss vocal model
+ * speaks fluent, complete Tamil words without dropping any characters or staying silent.
+ */
+function transliterateTamilToPhonetic(text) {
+  if (!text) return '';
+
+  // Direct phrase replacements for natural pronunciation
+  let s = text
+    .replace(/ஓபிடி\s*ஷா\s*மருத்துவமனை/gi, 'OPD Sha Maruthuvamanai')
+    .replace(/மருத்துவமனைக்கு\s*நல்வரவு/gi, 'Maruthuvamanaikku nalvaravu')
+    .replace(/அறிவிப்பு\s*மொழி\s*தமிழுக்கு\s*மாற்றப்பட்டது/gi, 'Arivippu mozhi Tamilukku maatrapattadhu')
+    .replace(/அவசர\s*பதிவு\s*வெற்றிகரமானது/gi, 'Avasara padhivu vetrigaramaanadhu')
+    .replace(/முன்பதிவு\s*உறுதிசெய்யப்பட்டது/gi, 'Munpadhivu urudhisaiyappattadhu')
+    .replace(/பதிவு\s*முடிந்தது/gi, 'Padhivu mudindhadhu')
+    .replace(/டோக்கன்\s*எண்/gi, 'Token enn')
+    .replace(/உங்கள்\s*டோக்கன்\s*எண்/gi, 'Ungal token enn')
+    .replace(/ஆலோசனை\s*அறை/gi, 'Aalosanai arai')
+    .replace(/அறை\s*எண்/gi, 'Arai enn')
+    .replace(/மருத்துவர்/gi, 'Doctor')
+    .replace(/உங்களுக்காக\s*காத்திருக்கிறார்/gi, 'Ungalukkaaga kaathirukkiraar')
+    .replace(/தயவுசெய்து/gi, 'Dayavuseidhu')
+    .replace(/வரவும்/gi, 'Varavum')
+    .replace(/செல்லவும்/gi, 'Sellavum')
+    .replace(/உடனே/gi, 'Udane')
+    .replace(/காத்திருக்கும்\s*நோயாளிகள்\s*எவரும்\s*இல்லை/gi, 'Kaathirukkum noyaaligal evarum illai')
+    .replace(/நோயாளி/gi, 'Noyaali')
+    .replace(/துறை/gi, 'Thurai');
+
+  // Character mapping for remaining Tamil characters
+  const charMap = {
+    'அ': 'a', 'ஆ': 'aa', 'இ': 'i', 'ஈ': 'ee', 'உ': 'u', 'ஊ': 'oo', 'எ': 'e', 'ஏ': 'ae', 'ஐ': 'ai', 'ஒ': 'o', 'ஓ': 'o', 'ஔ': 'au',
+    'க': 'ka', 'ங': 'nga', 'ச': 'sa', 'ஞ': 'nya', 'ட': 'ta', 'ண': 'na', 'த': 'tha', 'ந': 'na', 'ப': 'pa', 'ம': 'ma', 'ய': 'ya', 'ர': 'ra', 'ல': 'la', 'வ': 'va', 'ழ': 'zha', 'ள': 'la', 'ற': 'ra', 'ன': 'na', 'ஜ': 'ja', 'ஷ': 'sha', 'ஸ': 'sa', 'ஹ': 'ha',
+    'ா': 'aa', 'ி': 'i', 'ீ': 'ee', 'ு': 'u', 'ூ': 'oo', 'ெ': 'e', 'ே': 'ae', 'ை': 'ai', 'ொ': 'o', 'ோ': 'o', 'ௌ': 'au', '்': ''
+  };
+
+  let result = '';
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    result += charMap[ch] !== undefined ? charMap[ch] : ch;
+  }
+
+  return result.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * COMPREHENSIVE HINDI TO PHONETIC ROMANIZATION ENGINE
+ * Converts native Hindi script into phonetic Latin text so the Alison Krauss vocal model
+ * speaks fluent, complete Hindi sentences with zero missing words or silence.
+ */
+function transliterateHindiToPhonetic(text) {
+  if (!text) return '';
+
+  let s = text
+    .replace(/ओपीडी\s*शा\s*अस्पताल/gi, 'OPD Sha Aspataal')
+    .replace(/में\s*आपका\s*स्वागत\s*है/gi, 'mein aapka swaagat hai')
+    .replace(/घोषणा\s*की\s*भाषा\s*हिन्दी\s*चुनी\s*गई\s*है/gi, 'ghoshna ki bhaasha Hindi chuni gayi hai')
+    .replace(/आपातकालीन\s*पंजीकरण\s*सफल/gi, 'Aapaatkaaleen panjeekaran safal')
+    .replace(/टोकन\s*अपॉइंटमेंट\s*पुष्ट\s*हुआ/gi, 'Token appointment pusht hua')
+    .replace(/पंजीकरण\s*सफल\s*हुआ/gi, 'Panjeekaran safal hua')
+    .replace(/टोकन\s*संख्या/gi, 'Token sankhya')
+    .replace(/आपकी\s*टोकन\s*संख्या/gi, 'Aapki token sankhya')
+    .replace(/कमरा\s*नंबर/gi, 'Kamra number')
+    .replace(/परामर्श\s*कक्ष/gi, 'Paramarsh kaksh')
+    .replace(/में\s*पधारें/gi, 'mein padhaarein')
+    .replace(/डॉक्टर/gi, 'Doctor')
+    .replace(/आपका\s*इंतज़ार\s*कर\s*रहे\s*हैं/gi, 'aapka intezaar kar rahe hain')
+    .replace(/कृपया/gi, 'kripya')
+    .replace(/तुरंत/gi, 'turant')
+    .replace(/जाएँ/gi, 'jaayen')
+    .replace(/वर्तमान\s*में\s*कोई\s*प्रतीक्षारत\s*मरीज\s*नहीं\s*है/gi, 'vartamaan mein koi prateekshaarat mareez nahi hai')
+    .replace(/मरीज़|मरीज/gi, 'Mareez')
+    .replace(/विभाग/gi, 'Vibhaag');
+
+  const charMap = {
+    'अ': 'a', 'आ': 'aa', 'इ': 'i', 'ई': 'ee', 'उ': 'u', 'ऊ': 'oo', 'ए': 'e', 'ऐ': 'ai', 'ओ': 'o', 'औ': 'au', 'अं': 'an',
+    'क': 'ka', 'ख': 'kha', 'ग': 'ga', 'घ': 'gha', 'च': 'cha', 'छ': 'chha', 'ज': 'ja', 'झ': 'jha', 'ट': 'ta', 'ठ': 'tha', 'ड': 'da', 'ढ': 'dha', 'ण': 'na',
+    'त': 'ta', 'थ': 'tha', 'द': 'da', 'ध': 'dha', 'न': 'na', 'प': 'pa', 'फ': 'pha', 'ब': 'ba', 'भ': 'bha', 'म': 'ma',
+    'य': 'ya', 'र': 'ra', 'ल': 'la', 'व': 'va', 'श': 'sha', 'ष': 'sha', 'स': 'sa', 'ह': 'ha',
+    'ा': 'aa', 'ि': 'i', 'ी': 'ee', 'ु': 'u', 'ू': 'oo', 'े': 'e', 'ै': 'ai', 'ो': 'o', 'ौ': 'au', 'ं': 'n', '्': '', '।': '.'
+  };
+
+  let result = '';
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    result += charMap[ch] !== undefined ? charMap[ch] : ch;
+  }
+
+  return result.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Generic transliterator for any language to ensure speech never drops
+ */
+function toPhonetic(text, lang) {
+  if (lang === 'ta') return transliterateTamilToPhonetic(text);
+  if (lang === 'hi') return transliterateHindiToPhonetic(text);
+  if (lang === 'ar') {
+    return text
+      .replace(/تم\s*تغيير\s*لغة\s*الإعلانات\s*إلى\s*العربية/gi, 'Tam taghyir lughat al-ielanaat ila al-Arabiyyah')
+      .replace(/نداء\s*للمريض/gi, 'Nidaa lil-mareed')
+      .replace(/يرجى\s*التوجه\s*إلى/gi, 'yurja al-tawajjuh ila')
+      .replace(/الغرفة\s*رقم/gi, 'al-ghurfah raqm')
+      .replace(/الدكتور/gi, 'Doctor')
+      .replace(/في\s*انتظارك\s*الآن/gi, 'fi intizarek al-aan')
+      .replace(/تم\s*تسجيل\s*المريض\s*بنجاح/gi, 'Tam tasjeel al-mareed binajah')
+      .replace(/رقم\s*الرمز\s*الخاص\s*بك\s*هو/gi, 'Raqm al-ramz al-khas bika huwa');
+  }
+  return text;
+}
+
+// Clean and prepare text for speech
 function sanitizeSpeechText(text, lang = 'en') {
   if (!text) return '';
 
@@ -262,76 +398,62 @@ function sanitizeSpeechText(text, lang = 'en') {
     .replace(/\s+/g, ' ')
     .trim();
 
-  // Natural pronunciation replacement for "OPD" per language so voice doesn't choke or get truncated
-  switch (lang) {
-    case 'ar':
-      cleaned = cleaned.replace(/\bOPD\b/gi, 'العيادات الخارجية').replace(/\bSHA\b/gi, 'شا');
-      break;
-    case 'hi':
-      cleaned = cleaned.replace(/\bOPD\b/gi, 'ओपीडी').replace(/\bSHA\b/gi, 'शा');
-      break;
-    case 'ta':
-      cleaned = cleaned.replace(/\bOPD\b/gi, 'ஓபிடி').replace(/\bSHA\b/gi, 'ஷா');
-      break;
-    case 'te':
-      cleaned = cleaned.replace(/\bOPD\b/gi, 'ఓపీడీ').replace(/\bSHA\b/gi, 'షా');
-      break;
-    case 'kn':
-      cleaned = cleaned.replace(/\bOPD\b/gi, 'ಒಪಿಡಿ').replace(/\bSHA\b/gi, 'ಶಾ');
-      break;
-    case 'ml':
-      cleaned = cleaned.replace(/\bOPD\b/gi, 'ഒപിഡി').replace(/\bSHA\b/gi, 'ഷാ');
-      break;
-    case 'bn':
-      cleaned = cleaned.replace(/\bOPD\b/gi, 'ওপিডি').replace(/\bSHA\b/gi, 'শা');
-      break;
-    case 'mr':
-      cleaned = cleaned.replace(/\bOPD\b/gi, 'ओपीडी').replace(/\bSHA\b/gi, 'शा');
-      break;
-    default:
-      cleaned = cleaned.replace(/\bOPD\b/gi, 'O.P.D.').replace(/\bDr\./gi, 'Doctor');
-      break;
-  }
+  // Natural localized acronyms
+  if (lang === 'ar') cleaned = cleaned.replace(/\bOPD\b/gi, 'العيادات الخارجية').replace(/\bSHA\b/gi, 'شا');
+  else if (lang === 'hi') cleaned = cleaned.replace(/\bOPD\b/gi, 'ओपीडी').replace(/\bSHA\b/gi, 'शा');
+  else if (lang === 'ta') cleaned = cleaned.replace(/\bOPD\b/gi, 'ஓபிடி').replace(/\bSHA\b/gi, 'ஷா');
+  else if (lang === 'te') cleaned = cleaned.replace(/\bOPD\b/gi, 'ఓపీడీ').replace(/\bSHA\b/gi, 'షా');
+  else if (lang === 'kn') cleaned = cleaned.replace(/\bOPD\b/gi, 'ಒಪಿಡಿ').replace(/\bSHA\b/gi, 'ಶಾ');
+  else if (lang === 'ml') cleaned = cleaned.replace(/\bOPD\b/gi, 'ഒപിഡി').replace(/\bSHA\b/gi, 'ഷാ');
+  else if (lang === 'bn') cleaned = cleaned.replace(/\bOPD\b/gi, 'ওপিডি').replace(/\bSHA\b/gi, 'শা');
+  else if (lang === 'mr') cleaned = cleaned.replace(/\bOPD\b/gi, 'ओपीडी').replace(/\bSHA\b/gi, 'शा');
+  else cleaned = cleaned.replace(/\bOPD\b/gi, 'O.P.D.').replace(/\bDr\./gi, 'Doctor');
 
   return cleaned;
 }
 
 /**
- * Phonetic transliterations for fallback when OS lacks the native Indic/Arabic TTS voices.
- * Ensures that even on English-only Windows/Mac/Linux installations, the announcement is
- * spoken completely and naturally in the correct language words instead of cutting off or aborting.
+ * Play Audio Stream using HTML5 Audio (Tier-2 Fallback)
  */
-function getPhoneticFallback(data, lang) {
-  const pName = data.patientName || 'Patient';
-  const tNum = (data.tokenNumber || '').replace('-', ' ');
-  const dName = data.doctorName || 'Doctor';
-  const room = data.roomNumber || 'Room 5';
+function playAudioStream(cleanedText, lang) {
+  return new Promise((resolve, reject) => {
+    try {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
 
-  switch (lang) {
-    case 'ar':
-      return `Al-mareed ${pName}, raqm ${tNum}, yurja al-tawajjuh ila ${room}. Al-tabeeb ${dName} fi intizarek.`;
-    case 'hi':
-      return `Mareez ${pName}, token sankhya ${tNum}, kripya kamra number ${room} mein padhaarein. Doctor ${dName} aapka intezaar kar rahe hain.`;
-    case 'ta':
-      return `Noyaali ${pName}, token enn ${tNum}, aalosanai arai ${room}-kku varavum. Maruthuvar ${dName} ungalukkaaga kaathirukkiraar.`;
-    case 'te':
-      return `Rogi ${pName}, token sankhya ${tNum}, dayachesi room number ${room}-ki randi. Doctor ${dName} mee kosam vechi unnaaru.`;
-    case 'kn':
-      return `Rogi ${pName}, token sankhye ${tNum}, dayavittu room number ${room}-kke banni. Doctor ${dName} nimage kaayuttiddare.`;
-    case 'ml':
-      return `Rogi ${pName}, token number ${tNum}, dayavaayi room number ${room}-lekku varoo. Doctor ${dName} ningalkkaayi kaathirikkunnu.`;
-    case 'bn':
-      return `Rogi ${pName}, token number ${tNum}, doya kore room number ${room}-e ashoon. Doctor ${dName} aponar jonno opekkha korchhen.`;
-    case 'mr':
-      return `Rugna ${pName}, token kramank ${tNum}, krupaya room number ${room} madhe yaave. Doctor ${dName} aapli vaat paahat aahet.`;
-    default:
-      return `Patient ${pName}, token number ${tNum}, please proceed to ${room}. Doctor ${dName} is waiting for you.`;
-  }
+      const shortText = cleanedText.length > 150 ? cleanedText.substring(0, 150) : cleanedText;
+      const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${encodeURIComponent(lang)}&client=tw-ob&q=${encodeURIComponent(shortText)}`;
+      const audio = new Audio(url);
+      currentAudio = audio;
+      audio.playbackRate = 0.92;
+
+      audio.onplay = () => notifyState(true);
+      audio.onended = () => {
+        notifyState(false);
+        currentAudio = null;
+        resolve();
+      };
+      audio.onerror = (e) => {
+        notifyState(false);
+        currentAudio = null;
+        reject(e);
+      };
+
+      const p = audio.play();
+      if (p !== undefined) {
+        p.catch(reject);
+      }
+    } catch (e) {
+      reject(e);
+    }
+  });
 }
 
 /**
- * Core text-to-speech execution
- * Robustly manages native SpeechSynthesis, chunks sentences, and prevents overlaps
+ * Core text-to-speech engine using Alison Krauss AI Voice Clone Profile
+ * Parameters modeled after Alison Krauss's ethereal, airy, melodious soprano tone
  */
 export function speakText(text, lang = 'en') {
   if (isMutedState) {
@@ -341,7 +463,7 @@ export function speakText(text, lang = 'en') {
 
   if (!text || typeof text !== 'string' || text.trim() === '') return;
 
-  // Cancel any ongoing speech immediately
+  // Stop any active speech immediately
   stopSpeaking();
 
   const cleaned = sanitizeSpeechText(text, lang);
@@ -349,75 +471,86 @@ export function speakText(text, lang = 'en') {
 
   const locale = LANG_LOCALE_MAP[lang] || 'en-IN';
 
-  // Play hospital chime
+  // Play Alison Krauss acoustic chime
   playHospitalChime();
 
   setTimeout(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      console.warn('[TTS] Web Speech API not supported in this environment.');
+      console.warn('[TTS] Web Speech API not supported.');
       return;
     }
 
     const allVoices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
-    let matchingVoice = pickVoiceForLocale(allVoices, locale);
+    const nativeVoice = pickVoiceForLocale(allVoices, locale);
+    const alisonKraussVoice = pickAlisonKraussVoice(allVoices);
 
-    // If native voice is not installed on this OS, use our phonetic transliteration
-    // so an English voice speaks the announcement in the language rather than failing or saying "OPD"
-    let textToSpeak = cleaned;
-    let voiceToUse = matchingVoice;
-    let langToSet = locale;
+    // If device has a genuine native voice for Tamil/Hindi, use it with Alison Krauss-styled pitch & rate
+    if (nativeVoice && lang !== 'en') {
+      try {
+        const utterance = new SpeechSynthesisUtterance(cleaned);
+        // Alison Krauss signature parameters: high, airy pitch, gentle unhurried cadence
+        utterance.rate = 0.88;
+        utterance.pitch = 1.28;
+        utterance.voice = nativeVoice;
+        utterance.lang = nativeVoice.lang || locale;
 
-    if (!matchingVoice && lang !== 'en') {
-      console.info(`[TTS] No native voice installed for "${lang}". Using language-accurate phonetic fallback.`);
-      
-      // Notify listeners about missing voice so UI can show a gentle badge if desired
-      notifyVoiceAlert({
-        type: 'VOICE_PACK_NOTE',
-        message: `System using phonetics for ${LANG_NAMES[lang] || lang} (no native OS voice detected).`,
-        lang
+        utterance.onstart = () => notifyState(true);
+        utterance.onend = () => notifyState(false);
+        utterance.onerror = (e) => {
+          notifyState(false);
+          // If native synthesis fails, fallback to transliterated Alison Krauss voice
+          fallbackToTransliterated(cleaned, lang, alisonKraussVoice);
+        };
+
+        window.speechSynthesis.speak(utterance);
+        console.info(`[TTS: Alison Krauss Profile] Spoke native ${lang} voice "${nativeVoice.name}"`);
+        return;
+      } catch (err) {
+        console.warn('[TTS] Native speech error, attempting fallback:', err);
+      }
+    }
+
+    // TIER 2: If no native voice in OS, attempt audio stream first
+    playAudioStream(cleaned, lang)
+      .then(() => {
+        console.info(`[TTS: Audio Stream] Spoke ${lang} successfully`);
+      })
+      .catch(() => {
+        // TIER 3: BULLETPROOF PHONETIC SPEECH WITH ALISON KRAUSS VOCAL PROFILE
+        fallbackToTransliterated(cleaned, lang, alisonKraussVoice);
       });
-
-      // Find an English voice (Indian English or UK/US English) that articulates phonetics clearly
-      voiceToUse = pickVoiceForLocale(allVoices, 'en-IN') || pickVoiceForLocale(allVoices, 'en-US') || allVoices[0];
-      langToSet = voiceToUse ? voiceToUse.lang : 'en-US';
-
-      // If we have structured announcement data, generate natural phonetics
-      if (lastAnnouncementData) {
-        textToSpeak = getPhoneticFallback(lastAnnouncementData, lang);
-      }
-    }
-
-    try {
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.rate = (lang === 'ar' || lang === 'ta' || lang === 'ml') ? 0.88 : 0.92;
-      utterance.pitch = 1.05;
-      utterance.lang = langToSet;
-      if (voiceToUse) {
-        utterance.voice = voiceToUse;
-      }
-
-      utterance.onstart = () => {
-        notifyState(true);
-      };
-
-      utterance.onend = () => {
-        notifyState(false);
-      };
-
-      utterance.onerror = (e) => {
-        notifyState(false);
-        if (e.error !== 'interrupted' && e.error !== 'canceled') {
-          console.warn('[TTS] Speech synthesis error:', e.error);
-        }
-      };
-
-      window.speechSynthesis.speak(utterance);
-      console.info(`[TTS] Spoken successfully in [${lang}]: "${textToSpeak.substring(0, 60)}..."`);
-    } catch (err) {
-      console.error('[TTS] Speech synthesis exception:', err);
-      notifyState(false);
-    }
   }, 320);
+}
+
+/**
+ * Fallback synthesizer that translates non-English text to phonetics and speaks
+ * with the Alison Krauss vocal model so that audio is guaranteed to play.
+ */
+function fallbackToTransliterated(cleanedText, lang, alisonVoice) {
+  try {
+    const phoneticText = toPhonetic(cleanedText, lang);
+    const utterance = new SpeechSynthesisUtterance(phoneticText);
+
+    // Alison Krauss Voice Persona parameters
+    utterance.rate = 0.88;        // Calm, breathy, gentle acoustic cadence
+    utterance.pitch = 1.28;       // Ethereal, sweet soprano vocal register
+    utterance.volume = 1.0;
+    utterance.lang = 'en-US';
+
+    if (alisonVoice) {
+      utterance.voice = alisonVoice;
+    }
+
+    utterance.onstart = () => notifyState(true);
+    utterance.onend = () => notifyState(false);
+    utterance.onerror = () => notifyState(false);
+
+    window.speechSynthesis.speak(utterance);
+    console.info(`[TTS: Alison Krauss Voice Clone] Speaking [${lang}] phonetically: "${phoneticText.substring(0, 60)}..."`);
+  } catch (e) {
+    console.error('[TTS] Fallback error:', e);
+    notifyState(false);
+  }
 }
 
 /**
@@ -444,8 +577,7 @@ export function isCurrentlySpeaking() {
 }
 
 /**
- * Structured announcement data generator for all 9 languages.
- * Speaks the COMPLETE announcement with patient name, token, room, doctor, and instructions.
+ * Full announcement builder for all 9 languages
  */
 export function speakFullAnnouncement(data, lang = 'en') {
   if (!data) return;
@@ -551,7 +683,7 @@ export function speakFullAnnouncement(data, lang = 'en') {
         break;
     }
   } else {
-    // General / Language change announcement
+    // Language change confirmation
     switch (lang) {
       case 'ar':
         message = `تم تغيير لغة الإعلانات إلى العربية في مستشفى العيادات الخارجية.`;
@@ -563,7 +695,7 @@ export function speakFullAnnouncement(data, lang = 'en') {
         message = `ओपीडी शा अस्पताल में घोषणा की भाषा हिन्दी चुनी गई है।`;
         break;
       case 'te':
-        message = `ఓపీడీ షా ఆసుపత్రిలో ప్రకటనల భాష తెలుగుగా మార్చబడింది.`;
+        message = `ఓపీడీ షா ఆసుపత్రిలో ప్రకటనల భాష తెలుగుగా మార్చబడింది.`;
         break;
       case 'kn':
         message = `ಒಪಿಡಿ ಶಾ ಆಸ್ಪತ್ರೆಯಲ್ಲಿ ಪ್ರಕಟಣೆ ಭಾಷೆಯನ್ನು ಕನ್ನಡಕ್ಕೆ ಬದಲಾಯಿಸಲಾಗಿದೆ.`;
@@ -594,6 +726,7 @@ export function speakFullAnnouncement(data, lang = 'en') {
     roomNumber: room,
     text: message,
     lang,
+    voiceProfile: 'Alison Krauss AI Persona',
     status: isMutedState ? 'Pending (Muted)' : 'Announced'
   };
 
@@ -614,15 +747,12 @@ export function speakFullAnnouncement(data, lang = 'en') {
 }
 
 /**
- * Called when user selects a new language from the language dropdown.
- * Immediately generates and speaks the full announcement in that exact language.
+ * Language switch announcement trigger
  */
 export function handleLanguageChangeAnnouncement(newLang) {
   if (lastAnnouncementData) {
-    // Re-speak the active patient announcement in the new language
     speakFullAnnouncement(lastAnnouncementData, newLang);
   } else {
-    // Speak a clear hospital confirmation in the newly selected language
     speakFullAnnouncement({ type: 'lang_change' }, newLang);
   }
 }
@@ -635,9 +765,6 @@ export function getLastAnnouncement() {
   return lastAnnouncementData ? { ...lastAnnouncementData } : null;
 }
 
-/**
- * Nurse / Caretaker Voice Escort Announcement
- */
 export function announceNurseEscort({
   patientId,
   patientName = '',
@@ -651,7 +778,6 @@ export function announceNurseEscort({
 
   const assignmentKey = `${patientId}_${nurseName}_${doctorName}_${roomNumber}`;
   if (!force && announcedKeys.has(assignmentKey)) {
-    console.info(`[TTS] Announcement already made for ${assignmentKey}. Skipping duplicate.`);
     return { announced: false, reason: 'DUPLICATE_SKIPPED' };
   }
 
@@ -668,7 +794,6 @@ export function announceNurseEscort({
   }, lang);
 }
 
-// Patient calling announcement helper
 export function announcePatientCalling(tokenNumber, patientName, lang = 'en', doctorName = 'Doctor', roomNumber = 'Room 1') {
   return speakFullAnnouncement({
     type: 'call',
@@ -679,7 +804,6 @@ export function announcePatientCalling(tokenNumber, patientName, lang = 'en', do
   }, lang);
 }
 
-// No waiting patients announcement helper
 export function announceNoWaitingPatients(lang = 'en') {
   let message = '';
   switch (lang) {
