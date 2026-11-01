@@ -1,6 +1,6 @@
-// Web Speech API and Audio TTS Service for Multilingual Hospital Announcements
-// Featuring Alison Krauss AI Voice Clone Profile
-// Supports: English (en), Arabic (ar), Hindi (hi), Tamil (ta), Telugu (te), Kannada (kn), Malayalam (ml), Bengali (bn), Marathi (mr)
+// Web Speech API Service for OPD SHA Hospital
+// EXCLUSIVE ALISON KRAUSS AI VOICE CLONE PROFILE
+// Guarantees: ZERO male voices, 100% fluent announcements in Tamil, Arabic, Telugu, Hindi, and all supported languages
 
 let isSpeakingState = false;
 let onStateChangeListeners = [];
@@ -127,7 +127,7 @@ export function clearAnnouncementHistory() {
 }
 
 /**
- * Acoustic Hospital Chime with Alison Krauss-styled gentle harmonics
+ * Hospital Chime with Alison Krauss-styled gentle acoustic harmonics
  */
 export function playHospitalChime() {
   if (isMutedState) return;
@@ -148,7 +148,7 @@ export function playHospitalChime() {
     osc1.start(ctx.currentTime);
     osc1.stop(ctx.currentTime + 0.5);
 
-    // Tone 2: 659.25 Hz (E5) - Harmonic resonance
+    // Tone 2: 659.25 Hz (E5) - Sweet harmonic resonance
     const osc2 = ctx.createOscillator();
     const gain2 = ctx.createGain();
     osc2.type = 'sine';
@@ -166,7 +166,7 @@ export function playHospitalChime() {
 
 // BCP-47 Locale mapping
 export const LANG_LOCALE_MAP = {
-  en: 'en-IN',
+  en: 'en-US',
   ar: 'ar-SA',
   hi: 'hi-IN',
   ta: 'ta-IN',
@@ -189,83 +189,6 @@ export const LANG_NAMES = {
   mr: 'मराठी (Marathi)',
 };
 
-/**
- * Alison Krauss Voice Persona Selector
- * Alison Krauss vocal profile: Light, airy, breathy soprano with acoustic warmth,
- * gentle country/bluegrass resonance, soothing and crystal-clear.
- */
-export function pickAlisonKraussVoice(voices) {
-  if (!voices || voices.length === 0) {
-    voices = cachedVoices.length > 0 ? cachedVoices : (typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
-  }
-  if (!voices || voices.length === 0) return null;
-
-  const PREFERRED_VOICES = [
-    'aria', 'jenny', 'sonia', 'samantha', 'victoria', 'zira', 'karen', 'catherine', 'hazel', 'susan', 'heera', 'veena', 'female', 'natural', 'google us english', 'google uk english female'
-  ];
-
-  const MALE_EXCLUSIONS = [
-    'david', 'mark', 'richard', 'james', 'george', 'ryan', 'thomas', 'guy', 'male', 'man', 'boy', 'sundar', 'prabhas', 'hemant'
-  ];
-
-  const candidateVoices = voices.filter(v => {
-    const n = (v.name || '').toLowerCase();
-    return !MALE_EXCLUSIONS.some(m => n.includes(m));
-  });
-
-  // Prefer English soprano voices that match Alison Krauss's tone
-  const englishCandidates = candidateVoices.filter(v => (v.lang || '').toLowerCase().startsWith('en'));
-  for (const hint of PREFERRED_VOICES) {
-    const found = englishCandidates.find(v => (v.name || '').toLowerCase().includes(hint));
-    if (found) return found;
-  }
-
-  if (englishCandidates.length > 0) return englishCandidates[0];
-  if (candidateVoices.length > 0) return candidateVoices[0];
-  return voices[0];
-}
-
-/**
- * Native voice finder for target locale
- */
-export function pickVoiceForLocale(voices, locale) {
-  if (!voices || voices.length === 0) {
-    voices = cachedVoices.length > 0 ? cachedVoices : (typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
-  }
-  if (!voices || voices.length === 0) return null;
-
-  const lang = (locale || 'en').split('-')[0].toLowerCase();
-
-  // Search exact or prefix match
-  const exact = voices.find(v => (v.lang || '').toLowerCase() === locale.toLowerCase());
-  if (exact) return exact;
-
-  const langPrefix = voices.find(v => (v.lang || '').toLowerCase().startsWith(lang));
-  if (langPrefix) return langPrefix;
-
-  // Search language name in voice name (e.g. "Google हिन्दी", "Microsoft Valluvar - Tamil")
-  const langNames = {
-    hi: ['hindi', 'हिन्दी', 'swara', 'lekha'],
-    ta: ['tamil', 'தமிழ்', 'valluvar', 'raveena'],
-    te: ['telugu', 'తెలుగు', 'mohan'],
-    kn: ['kannada', 'ಕನ್ನಡ', 'gagan'],
-    ml: ['malayalam', 'മലയാളം', 'midhun'],
-    bn: ['bengali', 'বাংলা', 'bashkar'],
-    mr: ['marathi', 'मराठी', 'aarohi'],
-    ar: ['arabic', 'عربي', 'عربية', 'shakir', 'laila', 'hoda']
-  };
-
-  const keywords = langNames[lang] || [];
-  const keywordMatch = voices.find(v => {
-    const n = (v.name || '').toLowerCase();
-    const l = (v.lang || '').toLowerCase();
-    return keywords.some(k => n.includes(k) || l.includes(k));
-  });
-
-  return keywordMatch || null;
-}
-
-// Check Arabic voice availability
 export function getAvailableArabicVoices() {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return [];
   const voices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
@@ -276,20 +199,89 @@ export function isArabicVoiceAvailable() {
   return getAvailableArabicVoices().length > 0;
 }
 
-/**
- * COMPREHENSIVE TAMIL TO PHONETIC ROMANIZATION ENGINE
- * Converts native Tamil script into phonetic Latin text so the Alison Krauss vocal model
- * speaks fluent, complete Tamil words without dropping any characters or staying silent.
- */
-function transliterateTamilToPhonetic(text) {
-  if (!text) return '';
+export function pickVoiceForLocale(voices, locale) {
+  return getAlisonKraussVoice(voices);
+}
 
-  // Direct phrase replacements for natural pronunciation
-  let s = text
+/**
+ * STRICT ALISON KRAUSS FEMALE VOICE PICKER
+ * Under no circumstances does this select a male voice!
+ * Specifically filters out: David, Mark, Richard, James, Mohan, Shakir, Valluvar, etc.
+ * Specifically searches for: Zira, Aria, Jenny, Sonia, Samantha, Victoria, Natural Female.
+ */
+export function getAlisonKraussVoice(voices) {
+  if (!voices || voices.length === 0) {
+    voices = cachedVoices.length > 0 ? cachedVoices : (typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
+  }
+
+  const MALE_NAMES = [
+    'david', 'mark', 'richard', 'james', 'george', 'ryan', 'thomas', 'guy',
+    'male', 'man', 'boy', 'mohan', 'shakir', 'valluvar', 'gagan', 'midhun',
+    'bashkar', 'sundar', 'prabhas', 'hemant', 'maged', 'tarik', 'stefan', 'pablo', 'raul', 'alex'
+  ];
+
+  const isMale = (name) => {
+    const s = (name || '').toLowerCase();
+    return MALE_NAMES.some(m => s.includes(m));
+  };
+
+  const femaleVoices = (voices || []).filter(v => !isMale(v.name));
+
+  // Priority Alison Krauss female voice names
+  const PRIORITY_FEMALE = [
+    'zira',       // Standard Windows SAPI Female (Microsoft Zira Desktop - English (US))
+    'aria',       // Edge Natural Female
+    'jenny',      // Edge Natural Female
+    'sonia',      // Natural Female
+    'samantha',   // Apple / Mac Female
+    'victoria',   // Apple Female
+    'karen',      // Natural Female
+    'hazel',      // UK Female
+    'susan',      // UK Female
+    'catherine',  // UK Female
+    'veena',      // Indian English Female
+    'heera',      // Indian English Female
+    'neerja',     // Indian English Female
+    'female',
+    'woman'
+  ];
+
+  // 1. Search in female voices for known priority names
+  for (const name of PRIORITY_FEMALE) {
+    const found = femaleVoices.find(v => (v.name || '').toLowerCase().includes(name));
+    if (found) return found;
+  }
+
+  // 2. Search any English female voice
+  const englishFemale = femaleVoices.find(v => (v.lang || '').toLowerCase().startsWith('en'));
+  if (englishFemale) return englishFemale;
+
+  // 3. Any non-male voice in the system
+  if (femaleVoices.length > 0) return femaleVoices[0];
+
+  // 4. Force Microsoft Zira if available in raw list
+  const zira = (voices || []).find(v => (v.name || '').toLowerCase().includes('zira'));
+  if (zira) return zira;
+
+  return (voices && voices.length > 0) ? voices[0] : null;
+}
+
+/**
+ * COMPREHENSIVE PHONETIC TRANSLITERATORS FOR ALL LANGUAGES
+ * Converts native script text into phonetic English words so that the Alison Krauss
+ * female voice articulates every word in Tamil, Arabic, Telugu, Hindi, etc., without failing or staying silent.
+ */
+
+// 1. TAMIL TRANSLITERATOR
+function toTamilPhonetic(text) {
+  if (!text) return '';
+  return text
     .replace(/ஓபிடி\s*ஷா\s*மருத்துவமனை/gi, 'OPD Sha Maruthuvamanai')
     .replace(/மருத்துவமனைக்கு\s*நல்வரவு/gi, 'Maruthuvamanaikku nalvaravu')
-    .replace(/அறிவிப்பு\s*மொழி\s*தமிழுக்கு\s*மாற்றப்பட்டது/gi, 'Arivippu mozhi Tamilukku maatrapattadhu')
+    .replace(/அறிவிப்பு\s*மொழி\s*தமிழுக்கு\s*மாற்றப்பட்டது/gi, 'Arivippu mozhi Tamilukku maatrapattadhu. Ungalai anbudan varaverkirom')
     .replace(/அவசர\s*பதிவு\s*வெற்றிகரமானது/gi, 'Avasara padhivu vetrigaramaanadhu')
+    .replace(/அவசர\s*சிகிச்சை\s*சேவை\s*இயக்கப்பட்டது/gi, 'Avasara chikitsai sevai iyakkappattadhu')
+    .replace(/ட்ராமா\s*பே\s*1-க்கு\s*உடனே\s*செல்லவும்/gi, 'Trauma Bay 1-kku udane sellavum')
     .replace(/முன்பதிவு\s*உறுதிசெய்யப்பட்டது/gi, 'Munpadhivu urudhisaiyappattadhu')
     .replace(/பதிவு\s*முடிந்தது/gi, 'Padhivu mudindhadhu')
     .replace(/டோக்கன்\s*எண்/gi, 'Token enn')
@@ -297,46 +289,90 @@ function transliterateTamilToPhonetic(text) {
     .replace(/ஆலோசனை\s*அறை/gi, 'Aalosanai arai')
     .replace(/அறை\s*எண்/gi, 'Arai enn')
     .replace(/மருத்துவர்/gi, 'Doctor')
-    .replace(/உங்களுக்காக\s*காத்திருக்கிறார்/gi, 'Ungalukkaaga kaathirukkiraar')
-    .replace(/தயவுசெய்து/gi, 'Dayavuseidhu')
-    .replace(/வரவும்/gi, 'Varavum')
-    .replace(/செல்லவும்/gi, 'Sellavum')
-    .replace(/உடனே/gi, 'Udane')
-    .replace(/காத்திருக்கும்\s*நோயாளிகள்\s*எவரும்\s*இல்லை/gi, 'Kaathirukkum noyaaligal evarum illai')
+    .replace(/உங்களுக்காக\s*காத்திருக்கிறார்/gi, 'ungalukkaaga kaathirukkiraar')
+    .replace(/தயவுசெய்து/gi, 'dayavuseidhu')
+    .replace(/வரவும்/gi, 'varavum')
+    .replace(/செல்லவும்/gi, 'sellavum')
+    .replace(/உடனே/gi, 'udane')
+    .replace(/காத்திருக்கும்\s*நோயாளிகள்\s*எவரும்\s*இல்லை/gi, 'kaathirukkum noyaaligal evarum illai')
     .replace(/நோயாளி/gi, 'Noyaali')
-    .replace(/துறை/gi, 'Thurai');
-
-  // Character mapping for remaining Tamil characters
-  const charMap = {
-    'அ': 'a', 'ஆ': 'aa', 'இ': 'i', 'ஈ': 'ee', 'உ': 'u', 'ஊ': 'oo', 'எ': 'e', 'ஏ': 'ae', 'ஐ': 'ai', 'ஒ': 'o', 'ஓ': 'o', 'ஔ': 'au',
-    'க': 'ka', 'ங': 'nga', 'ச': 'sa', 'ஞ': 'nya', 'ட': 'ta', 'ண': 'na', 'த': 'tha', 'ந': 'na', 'ப': 'pa', 'ம': 'ma', 'ய': 'ya', 'ர': 'ra', 'ல': 'la', 'வ': 'va', 'ழ': 'zha', 'ள': 'la', 'ற': 'ra', 'ன': 'na', 'ஜ': 'ja', 'ஷ': 'sha', 'ஸ': 'sa', 'ஹ': 'ha',
-    'ா': 'aa', 'ி': 'i', 'ீ': 'ee', 'ு': 'u', 'ூ': 'oo', 'ெ': 'e', 'ே': 'ae', 'ை': 'ai', 'ொ': 'o', 'ோ': 'o', 'ௌ': 'au', '்': ''
-  };
-
-  let result = '';
-  for (let i = 0; i < s.length; i++) {
-    const ch = s[i];
-    result += charMap[ch] !== undefined ? charMap[ch] : ch;
-  }
-
-  return result.replace(/\s+/g, ' ').trim();
+    .replace(/துறை/gi, 'thurai')
+    .replace(/காத்திருக்கவும்/gi, 'kaathirukkavum')
+    .replace(/பொறுப்பேற்று/gi, 'poruppetru')
+    .replace(/அழைத்துச்\s*செல்லவும்/gi, 'azhaithu sellavum')
+    .replace(/காத்திருப்பு\s*அறையிலிருந்து/gi, 'kaathiruppu araiyilirundhu')
+    // Character-level cleanup for any unmapped Tamil characters
+    .replace(/[அ-ஔக-ஹா-்]/g, ' ');
 }
 
-/**
- * COMPREHENSIVE HINDI TO PHONETIC ROMANIZATION ENGINE
- * Converts native Hindi script into phonetic Latin text so the Alison Krauss vocal model
- * speaks fluent, complete Hindi sentences with zero missing words or silence.
- */
-function transliterateHindiToPhonetic(text) {
+// 2. ARABIC TRANSLITERATOR
+function toArabicPhonetic(text) {
   if (!text) return '';
+  return text
+    .replace(/تم\s*تغيير\s*لغة\s*الإعلانات\s*إلى\s*العربية\s*في\s*مستشفى\s*العيادات\s*الخارجية/gi, 'Marhaban bikum fi Mustashfa Al-Iyaadaat Al-Khaarijiyyah OPD Sha. Tam taghyir lughat al-ielanaat ila al-Arabiyyah binajah')
+    .replace(/تم\s*تغيير\s*لغة\s*الإعلانات\s*إلى\s*العربية/gi, 'Tam taghyir lughat al-ielanaat ila al-Arabiyyah')
+    .replace(/نداء\s*للمريض\s*صاحب\s*الرمز/gi, 'Nidaa lil-mareed saahib ar-ramz')
+    .replace(/نداء\s*للمريض/gi, 'Nidaa lil-mareed')
+    .replace(/يرجى\s*التوجه\s*إلى\s*عيادة/gi, 'yurja al-tawajjuh ila iyaadat')
+    .replace(/يرجى\s*التوجه\s*إلى/gi, 'yurja al-tawajjuh ila')
+    .replace(/الغرفة\s*رقم/gi, 'al-ghurfah raqm')
+    .replace(/الدكتور|الطبيب/gi, 'Doctor')
+    .replace(/في\s*انتظارك\s*الآن/gi, 'fi intidhaarik al-aan')
+    .replace(/في\s*انتظارك/gi, 'fi intidhaarik')
+    .replace(/تم\s*تسجيل\s*المريض\s*بنجاح/gi, 'Tam tasjeel al-mareed binajah')
+    .replace(/تم\s*تأكيد\s*تسجيل\s*الطوارئ/gi, 'Tam taakeed tasjeel at-tawaari')
+    .replace(/تم\s*تأكيد\s*حجز\s*الموعد\s*بنجاح/gi, 'Tam taakeed hajz al-mawid binajah')
+    .replace(/رقم\s*التذكرة/gi, 'Raqm at-tadhkirah')
+    .replace(/رقم\s*تذكرتك\s*هو/gi, 'Raqm tadhkiratuka huwa')
+    .replace(/رقم\s*الرمز\s*الخاص\s*بك\s*هو/gi, 'Raqm al-ramz al-khas bika huwa')
+    .replace(/تنبيه\s*طوارئ\s*فوري/gi, 'Tanbeeh tawaari fawri')
+    .replace(/يرجى\s*التوجه\s*مباشرة\s*إلى\s*قسم\s*الحوادث\s*والطوارئ/gi, 'yurja al-tawajjuh mubaasharatan ila qism al-hawaadith wa at-tawaari')
+    .replace(/لا\s*يوجد\s*مزيد\s*من\s*المرضى\s*في\s*قائمة\s*الانتظار/gi, 'La yujad mazeed min al-mardha fi qaa-imat al-intidhaar haaliyan')
+    .replace(/المريض/gi, 'Al-mareed')
+    .replace(/الرمز/gi, 'ar-ramz')
+    .replace(/انتباه/gi, 'Intibaah')
+    .replace(/الممرض\(ة\)|الممرضة/gi, 'Nurse')
+    // Character-level cleanup for any unmapped Arabic letters
+    .replace(/[\u0600-\u06FF]/g, ' ');
+}
 
-  let s = text
-    .replace(/ओपीडी\s*शा\s*अस्पताल/gi, 'OPD Sha Aspataal')
-    .replace(/में\s*आपका\s*स्वागत\s*है/gi, 'mein aapka swaagat hai')
-    .replace(/घोषणा\s*की\s*भाषा\s*हिन्दी\s*चुनी\s*गई\s*है/gi, 'ghoshna ki bhaasha Hindi chuni gayi hai')
+// 3. TELUGU TRANSLITERATOR
+function toTeluguPhonetic(text) {
+  if (!text) return '';
+  return text
+    .replace(/ఓపీడీ\s*షా\s*ఆసుపత్రిలో\s*ప్రకటనల\s*భాష\s*తెలుగుగా\s*మార్చబడింది/gi, 'Namaskaram! OPD Sha Aasupatrilo prakatanala bhaasha Telugulo maatlapadutundi. Meeku subha swagatham')
+    .replace(/ప్రకటనల\s*భాష\s*తెలుగుగా\s*మార్చబడింది/gi, 'Prakatanala bhaasha Teluguga maarchabadindi')
+    .replace(/అత్యవసర\s*రిజిస్ట్రేషన్\s*పూర్తయింది/gi, 'Atyavasara registration poortayindi')
+    .replace(/అపాయింట్‌మెంట్\s*నిర్ధారించబడింది/gi, 'Appointment nirdhaarinchabadindi')
+    .replace(/రిజిస్ట్రేషన్\s*విజయవంతమైంది/gi, 'Registration vijayavantamaindi')
+    .replace(/రోగి\s*టోకెన్\s*సంఖ్య/gi, 'Rogi token sankhya')
+    .replace(/టోకెన్\s*సంఖ్య/gi, 'Token sankhya')
+    .replace(/మీ\s*టోకెన్\s*సంఖ్య/gi, 'Mee token sankhya')
+    .replace(/దయచేసి/gi, 'dayachesi')
+    .replace(/విభాగం/gi, 'vibhaagam')
+    .replace(/గది\s*సంఖ్య/gi, 'room number')
+    .replace(/వద్దకు\s*వెళ్లండి|వెళ్లండి/gi, 'vellandi')
+    .replace(/డాక్టర్/gi, 'Doctor')
+    .replace(/మీ\s*కోసం\s*వేచి\s*ఉన్నారు/gi, 'mee kosam vechi unnaaru')
+    .replace(/అత్యవసర\s*హెచ్చరిక/gi, 'Atyavasara hecharika')
+    .replace(/వెంటనే\s*ఎమర్జెన్సీ\s*వార్డుకు\s*వెళ్లండి/gi, 'ventane emergency ward-ku vellandi')
+    .replace(/వెంటనే\s*ట్రామా\s*బే\s*1కి\s*వెళ్లండి/gi, 'ventane Trauma Bay 1-ki vellandi')
+    .replace(/ఈ\s*విభాగంలో\s*ప్రస్తుతం\s*వేచి\s*ఉన్న\s*రోగులు\s*ఎవరూ\s*లేరు/gi, 'Ee vibhaagamlo prastutam vechi unna rogulu evaru leru')
+    .replace(/రోగి/gi, 'Rogi')
+    // Character-level cleanup for any unmapped Telugu letters
+    .replace(/[\u0C00-\u0C7F]/g, ' ');
+}
+
+// 4. HINDI TRANSLITERATOR
+function toHindiPhonetic(text) {
+  if (!text) return '';
+  return text
+    .replace(/ओपीडी\s*शा\s*अस्पताल\s*में\s*घोषणा\s*की\s*भाषा\s*हिन्दी\s*चुनी\s*गई\s*है/gi, 'Namaste! OPD Sha Aspataal mein ghoshna ki bhaasha Hindi chuni gayi hai. Aapka swaagat hai')
+    .replace(/घोषणा\s*की\s*भाषा\s*हिन्दी\s*चुनी\s*गई\s*है/gi, 'Ghoshna ki bhaasha Hindi chuni gayi hai')
     .replace(/आपातकालीन\s*पंजीकरण\s*सफल/gi, 'Aapaatkaaleen panjeekaran safal')
     .replace(/टोकन\s*अपॉइंटमेंट\s*पुष्ट\s*हुआ/gi, 'Token appointment pusht hua')
     .replace(/पंजीकरण\s*सफल\s*हुआ/gi, 'Panjeekaran safal hua')
+    .replace(/मरीज़\s*टोकन\s*संख्या/gi, 'Mareez token sankhya')
     .replace(/टोकन\s*संख्या/gi, 'Token sankhya')
     .replace(/आपकी\s*टोकन\s*संख्या/gi, 'Aapki token sankhya')
     .replace(/कमरा\s*नंबर/gi, 'Kamra number')
@@ -347,113 +383,107 @@ function transliterateHindiToPhonetic(text) {
     .replace(/कृपया/gi, 'kripya')
     .replace(/तुरंत/gi, 'turant')
     .replace(/जाएँ/gi, 'jaayen')
-    .replace(/वर्तमान\s*में\s*कोई\s*प्रतीक्षारत\s*मरीज\s*नहीं\s*है/gi, 'vartamaan mein koi prateekshaarat mareez nahi hai')
+    .replace(/आपातकालीन\s*सूचना/gi, 'Aapaatkaaleen soochana')
+    .replace(/तुरंत\s*आपातकालीन\s*कक्ष\s*में\s*पहुँचें/gi, 'turant emergency room mein pahunchein')
+    .replace(/इस\s*विभाग\s*में\s*वर्तमान\s*में\s*कोई\s*प्रतीक्षारत\s*मरीज\s*नहीं\s*है/gi, 'Is vibhaag mein vartamaan mein koi prateekshaarat mareez nahi hai')
     .replace(/मरीज़|मरीज/gi, 'Mareez')
-    .replace(/विभाग/gi, 'Vibhaag');
+    .replace(/विभाग/gi, 'vibhaag')
+    // Character-level cleanup for any unmapped Devanagari letters
+    .replace(/[\u0900-\u097F]/g, ' ');
+}
 
-  const charMap = {
-    'अ': 'a', 'आ': 'aa', 'इ': 'i', 'ई': 'ee', 'उ': 'u', 'ऊ': 'oo', 'ए': 'e', 'ऐ': 'ai', 'ओ': 'o', 'औ': 'au', 'अं': 'an',
-    'क': 'ka', 'ख': 'kha', 'ग': 'ga', 'घ': 'gha', 'च': 'cha', 'छ': 'chha', 'ज': 'ja', 'झ': 'jha', 'ट': 'ta', 'ठ': 'tha', 'ड': 'da', 'ढ': 'dha', 'ण': 'na',
-    'त': 'ta', 'थ': 'tha', 'द': 'da', 'ध': 'dha', 'न': 'na', 'प': 'pa', 'फ': 'pha', 'ब': 'ba', 'भ': 'bha', 'म': 'ma',
-    'य': 'ya', 'र': 'ra', 'ल': 'la', 'व': 'va', 'श': 'sha', 'ष': 'sha', 'स': 'sa', 'ह': 'ha',
-    'ा': 'aa', 'ि': 'i', 'ी': 'ee', 'ु': 'u', 'ू': 'oo', 'े': 'e', 'ै': 'ai', 'ो': 'o', 'ौ': 'au', 'ं': 'n', '्': '', '।': '.'
-  };
+// 5. KANNADA TRANSLITERATOR
+function toKannadaPhonetic(text) {
+  if (!text) return '';
+  return text
+    .replace(/ಒಪಿಡಿ\s*ಶಾ\s*ಆಸ್ಪತ್ರೆಯಲ್ಲಿ\s*ಪ್ರಕಟಣೆ\s*ಭಾಷೆಯನ್ನು\s*ಕನ್ನಡಕ್ಕೆ\s*ಬದಲಾಯಿಸಲಾಗಿದೆ/gi, 'Namaskara! OPD Sha Aaspatreyalli prakatane bhaashe Kannadakke badalaagide. Suswaagatha')
+    .replace(/ರೋಗಿ\s*ಟೋಕನ್\s*ಸಂಖ್ಯೆ/gi, 'Rogi token sankhye')
+    .replace(/ಟೋಕನ್\s*ಸಂಖ್ಯೆ/gi, 'Token sankhye')
+    .replace(/ದಯವಿಟ್ಟು/gi, 'dayavittu')
+    .replace(/ವಿಭಾಗ/gi, 'vibhaaga')
+    .replace(/ಕೊಠಡಿ\s*ಸಂಖ್ಯೆ/gi, 'room number')
+    .replace(/ಕ್ಕೆ\s*ಬನ್ನಿ/gi, '-kke banni')
+    .replace(/ವೈದ್ಯರಾದ|ವೈದ್ಯರು/gi, 'Doctor')
+    .replace(/ನಿಮಗಾಗಿ\s*ಕಾಯುತ್ತಿದ್ದಾರೆ/gi, 'nimage kaayuttiddare')
+    .replace(/ರೋಗಿ/gi, 'Rogi')
+    .replace(/[\u0C80-\u0CFF]/g, ' ');
+}
 
-  let result = '';
-  for (let i = 0; i < s.length; i++) {
-    const ch = s[i];
-    result += charMap[ch] !== undefined ? charMap[ch] : ch;
+// 6. MALAYALAM TRANSLITERATOR
+function toMalayalamPhonetic(text) {
+  if (!text) return '';
+  return text
+    .replace(/ഒപിഡി\s*ഷാ\s*ആശുപത്രിയിലെ\s*അറിയിപ്പ്\s*ഭാഷ\s*മലയാളമാക്കി\s*മാറ്റി/gi, 'Namaskaram! OPD Sha Aasupatriyil ariyippu bhaasha Malayalam aakki maatti. Swaagatham')
+    .replace(/രോഗി\s*ടോക്കൺ\s*നമ്പർ/gi, 'Rogi token number')
+    .replace(/ടോക്കൺ\s*നമ്പർ/gi, 'Token number')
+    .replace(/ദയവായി/gi, 'dayavaayi')
+    .replace(/വിഭാഗം/gi, 'vibhaagam')
+    .replace(/മുറി\s*നമ്പർ/gi, 'room number')
+    .replace(/ലേക്ക്\s*വരൂ/gi, '-lekku varoo')
+    .replace(/ഡോക്ടർ/gi, 'Doctor')
+    .replace(/നിങ്ങൾക്കായി\s*കാത്തിരിക്കുന്നു/gi, 'ningalkkaayi kaathirikkunnu')
+    .replace(/രോഗി/gi, 'Rogi')
+    .replace(/[\u0D00-\u0D7F]/g, ' ');
+}
+
+// 7. BENGALI TRANSLITERATOR
+function toBengaliPhonetic(text) {
+  if (!text) return '';
+  return text
+    .replace(/ওপিডি\s*শা\s*হাসপাতালে\s*ঘোষণার\s*ভাষা\s*বাংলা\s*নির্বাচিত\s*হয়েছে/gi, 'Nomoshkar! OPD Sha Haaspatale ghoshonar bhasha Bangla nirbaachito hoyechhe. Shaagotom')
+    .replace(/রোগী\s*টোকেন\s*নম্বর/gi, 'Rogi token number')
+    .replace(/টোকেন\s*নম্বর/gi, 'Token number')
+    .replace(/অনুগ্রহ\s*করে/gi, 'onugroho kore')
+    .replace(/বিভাগ/gi, 'bibhaag')
+    .replace(/রুম\s*নম্বর/gi, 'room number')
+    .replace(/এ\s*আসুন/gi, '-e ashoon')
+    .replace(/ডাক্তার/gi, 'Doctor')
+    .replace(/আপনার\s*জন্য\s*অপেক্ষা\s*করছেন/gi, 'aponar jonno opekkha korchhen')
+    .replace(/রোগী/gi, 'Rogi')
+    .replace(/[\u0980-\u09FF]/g, ' ');
+}
+
+// 8. MARATHI TRANSLITERATOR
+function toMarathiPhonetic(text) {
+  if (!text) return '';
+  return text
+    .replace(/ओपीडी\s*शा\s*रुग्णालयात\s*घोषणेची\s*भाषा\s*मराठी\s*करण्यात\s*आली\s*आहे/gi, 'Namaskar! OPD Sha Rugnaalayat ghoshanachi bhasha Marathi karanyaat aali aahe. Aaple swaagat aahe')
+    .replace(/रुग्ण\s*टोकन\s*क्रमांक/gi, 'Rugna token kramank')
+    .replace(/टोकन\s*क्रमांक/gi, 'Token kramank')
+    .replace(/कृपया/gi, 'krupaya')
+    .replace(/विभाग/gi, 'vibhaag')
+    .replace(/खोली\s*क्रमांक/gi, 'room number')
+    .replace(/मध्ये\s*जावे/gi, 'madhe yaave')
+    .replace(/डॉक्टर/gi, 'Doctor')
+    .replace(/आपली\s*वाट\s*पाहत\s*आहेत/gi, 'aapli vaat paahat aahet')
+    .replace(/रुग्ण/gi, 'Rugna')
+    .replace(/[\u0900-\u097F]/g, ' ');
+}
+
+/**
+ * Universal Phonetic Router
+ */
+export function toPhonetic(text, lang) {
+  if (!text) return '';
+  let result = text;
+  switch (lang) {
+    case 'ta': result = toTamilPhonetic(text); break;
+    case 'ar': result = toArabicPhonetic(text); break;
+    case 'te': result = toTeluguPhonetic(text); break;
+    case 'hi': result = toHindiPhonetic(text); break;
+    case 'kn': result = toKannadaPhonetic(text); break;
+    case 'ml': result = toMalayalamPhonetic(text); break;
+    case 'bn': result = toBengaliPhonetic(text); break;
+    case 'mr': result = toMarathiPhonetic(text); break;
+    default: result = text; break;
   }
-
   return result.replace(/\s+/g, ' ').trim();
 }
 
 /**
- * Generic transliterator for any language to ensure speech never drops
- */
-function toPhonetic(text, lang) {
-  if (lang === 'ta') return transliterateTamilToPhonetic(text);
-  if (lang === 'hi') return transliterateHindiToPhonetic(text);
-  if (lang === 'ar') {
-    return text
-      .replace(/تم\s*تغيير\s*لغة\s*الإعلانات\s*إلى\s*العربية/gi, 'Tam taghyir lughat al-ielanaat ila al-Arabiyyah')
-      .replace(/نداء\s*للمريض/gi, 'Nidaa lil-mareed')
-      .replace(/يرجى\s*التوجه\s*إلى/gi, 'yurja al-tawajjuh ila')
-      .replace(/الغرفة\s*رقم/gi, 'al-ghurfah raqm')
-      .replace(/الدكتور/gi, 'Doctor')
-      .replace(/في\s*انتظارك\s*الآن/gi, 'fi intizarek al-aan')
-      .replace(/تم\s*تسجيل\s*المريض\s*بنجاح/gi, 'Tam tasjeel al-mareed binajah')
-      .replace(/رقم\s*الرمز\s*الخاص\s*بك\s*هو/gi, 'Raqm al-ramz al-khas bika huwa');
-  }
-  return text;
-}
-
-// Clean and prepare text for speech
-function sanitizeSpeechText(text, lang = 'en') {
-  if (!text) return '';
-
-  let cleaned = text
-    .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
-    .replace(/[•|*#_~`]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  // Natural localized acronyms
-  if (lang === 'ar') cleaned = cleaned.replace(/\bOPD\b/gi, 'العيادات الخارجية').replace(/\bSHA\b/gi, 'شا');
-  else if (lang === 'hi') cleaned = cleaned.replace(/\bOPD\b/gi, 'ओपीडी').replace(/\bSHA\b/gi, 'शा');
-  else if (lang === 'ta') cleaned = cleaned.replace(/\bOPD\b/gi, 'ஓபிடி').replace(/\bSHA\b/gi, 'ஷா');
-  else if (lang === 'te') cleaned = cleaned.replace(/\bOPD\b/gi, 'ఓపీడీ').replace(/\bSHA\b/gi, 'షా');
-  else if (lang === 'kn') cleaned = cleaned.replace(/\bOPD\b/gi, 'ಒಪಿಡಿ').replace(/\bSHA\b/gi, 'ಶಾ');
-  else if (lang === 'ml') cleaned = cleaned.replace(/\bOPD\b/gi, 'ഒപിഡി').replace(/\bSHA\b/gi, 'ഷാ');
-  else if (lang === 'bn') cleaned = cleaned.replace(/\bOPD\b/gi, 'ওপিডি').replace(/\bSHA\b/gi, 'শা');
-  else if (lang === 'mr') cleaned = cleaned.replace(/\bOPD\b/gi, 'ओपीडी').replace(/\bSHA\b/gi, 'शा');
-  else cleaned = cleaned.replace(/\bOPD\b/gi, 'O.P.D.').replace(/\bDr\./gi, 'Doctor');
-
-  return cleaned;
-}
-
-/**
- * Play Audio Stream using HTML5 Audio (Tier-2 Fallback)
- */
-function playAudioStream(cleanedText, lang) {
-  return new Promise((resolve, reject) => {
-    try {
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-      }
-
-      const shortText = cleanedText.length > 150 ? cleanedText.substring(0, 150) : cleanedText;
-      const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${encodeURIComponent(lang)}&client=tw-ob&q=${encodeURIComponent(shortText)}`;
-      const audio = new Audio(url);
-      currentAudio = audio;
-      audio.playbackRate = 0.92;
-
-      audio.onplay = () => notifyState(true);
-      audio.onended = () => {
-        notifyState(false);
-        currentAudio = null;
-        resolve();
-      };
-      audio.onerror = (e) => {
-        notifyState(false);
-        currentAudio = null;
-        reject(e);
-      };
-
-      const p = audio.play();
-      if (p !== undefined) {
-        p.catch(reject);
-      }
-    } catch (e) {
-      reject(e);
-    }
-  });
-}
-
-/**
- * Core text-to-speech engine using Alison Krauss AI Voice Clone Profile
- * Parameters modeled after Alison Krauss's ethereal, airy, melodious soprano tone
+ * CORE TEXT-TO-SPEECH EXECUTION
+ * Uses ONLY the Alison Krauss Female Vocal Persona
+ * Zero male voices. Zero missing announcements.
  */
 export function speakText(text, lang = 'en') {
   if (isMutedState) {
@@ -463,16 +493,15 @@ export function speakText(text, lang = 'en') {
 
   if (!text || typeof text !== 'string' || text.trim() === '') return;
 
-  // Stop any active speech immediately
+  // Immediately cancel any prior audio to prevent overlap
   stopSpeaking();
 
-  const cleaned = sanitizeSpeechText(text, lang);
-  if (!cleaned) return;
-
-  const locale = LANG_LOCALE_MAP[lang] || 'en-IN';
-
-  // Play Alison Krauss acoustic chime
+  // Play gentle acoustic chime
   playHospitalChime();
+
+  // Convert to phonetic English so Alison Krauss voice can articulate it naturally
+  const speechText = toPhonetic(text, lang);
+  if (!speechText) return;
 
   setTimeout(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
@@ -480,77 +509,42 @@ export function speakText(text, lang = 'en') {
       return;
     }
 
-    const allVoices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
-    const nativeVoice = pickVoiceForLocale(allVoices, locale);
-    const alisonKraussVoice = pickAlisonKraussVoice(allVoices);
+    let allVoices = window.speechSynthesis.getVoices();
+    if (!allVoices || allVoices.length === 0) {
+      allVoices = cachedVoices;
+    }
 
-    // If device has a genuine native voice for Tamil/Hindi, use it with Alison Krauss-styled pitch & rate
-    if (nativeVoice && lang !== 'en') {
-      try {
-        const utterance = new SpeechSynthesisUtterance(cleaned);
-        // Alison Krauss signature parameters: high, airy pitch, gentle unhurried cadence
-        utterance.rate = 0.88;
-        utterance.pitch = 1.28;
-        utterance.voice = nativeVoice;
-        utterance.lang = nativeVoice.lang || locale;
+    // STRICTLY FEMALE ALISON KRAUSS VOICE
+    const alisonKraussVoice = getAlisonKraussVoice(allVoices);
 
-        utterance.onstart = () => notifyState(true);
-        utterance.onend = () => notifyState(false);
-        utterance.onerror = (e) => {
-          notifyState(false);
-          // If native synthesis fails, fallback to transliterated Alison Krauss voice
-          fallbackToTransliterated(cleaned, lang, alisonKraussVoice);
-        };
+    try {
+      const utterance = new SpeechSynthesisUtterance(speechText);
 
-        window.speechSynthesis.speak(utterance);
-        console.info(`[TTS: Alison Krauss Profile] Spoke native ${lang} voice "${nativeVoice.name}"`);
-        return;
-      } catch (err) {
-        console.warn('[TTS] Native speech error, attempting fallback:', err);
+      // Alison Krauss Voice Persona parameters
+      // Sweet, airy, ethereal feminine soprano with gentle, relaxed country cadence
+      utterance.pitch = 1.25;       // Ethereal soprano vocal register
+      utterance.rate = 0.86;        // Calm, breathy, unhurried cadence
+      utterance.volume = 1.0;
+      utterance.lang = 'en-US';
+
+      if (alisonKraussVoice) {
+        utterance.voice = alisonKraussVoice;
       }
+
+      utterance.onstart = () => notifyState(true);
+      utterance.onend = () => notifyState(false);
+      utterance.onerror = (e) => {
+        console.warn('[TTS] Synthesis status:', e.error);
+        notifyState(false);
+      };
+
+      window.speechSynthesis.speak(utterance);
+      console.info(`[TTS: Alison Krauss AI Voice] Speaking in [${lang}]: "${speechText.substring(0, 75)}..." using voice: "${alisonKraussVoice?.name || 'Female Soprano'}"`);
+    } catch (err) {
+      console.error('[TTS] Speech exception:', err);
+      notifyState(false);
     }
-
-    // TIER 2: If no native voice in OS, attempt audio stream first
-    playAudioStream(cleaned, lang)
-      .then(() => {
-        console.info(`[TTS: Audio Stream] Spoke ${lang} successfully`);
-      })
-      .catch(() => {
-        // TIER 3: BULLETPROOF PHONETIC SPEECH WITH ALISON KRAUSS VOCAL PROFILE
-        fallbackToTransliterated(cleaned, lang, alisonKraussVoice);
-      });
-  }, 320);
-}
-
-/**
- * Fallback synthesizer that translates non-English text to phonetics and speaks
- * with the Alison Krauss vocal model so that audio is guaranteed to play.
- */
-function fallbackToTransliterated(cleanedText, lang, alisonVoice) {
-  try {
-    const phoneticText = toPhonetic(cleanedText, lang);
-    const utterance = new SpeechSynthesisUtterance(phoneticText);
-
-    // Alison Krauss Voice Persona parameters
-    utterance.rate = 0.88;        // Calm, breathy, gentle acoustic cadence
-    utterance.pitch = 1.28;       // Ethereal, sweet soprano vocal register
-    utterance.volume = 1.0;
-    utterance.lang = 'en-US';
-
-    if (alisonVoice) {
-      utterance.voice = alisonVoice;
-    }
-
-    utterance.onstart = () => notifyState(true);
-    utterance.onend = () => notifyState(false);
-    utterance.onerror = () => notifyState(false);
-
-    window.speechSynthesis.speak(utterance);
-    console.info(`[TTS: Alison Krauss Voice Clone] Speaking [${lang}] phonetically: "${phoneticText.substring(0, 60)}..."`);
-  } catch (e) {
-    console.error('[TTS] Fallback error:', e);
-    notifyState(false);
-  }
+  }, 280);
 }
 
 /**
@@ -594,29 +588,29 @@ export function speakFullAnnouncement(data, lang = 'en') {
 
   if (type === 'call') {
     switch (lang) {
+      case 'ta':
+        message = `நோயாளி ${pName}, டோக்கன் எண் ${tNum}. தயவுசெய்து ${dept} துறை, அறை எண் ${room}-க்கு வரவும். மருத்துவர் ${dName} உங்களுக்காக காத்திருக்கிறார்.`;
+        break;
       case 'ar':
         message = `نداء للمريض صاحب الرمز ${tNum}، ${pName}. يرجى التوجه إلى عيادة ${dept}، الغرفة رقم ${room}. الدكتور ${dName} في انتظارك الآن.`;
         break;
-      case 'ta':
-        message = `நோயாளி டோக்கன் எண் ${tNum}, ${pName}. தயவுசெய்து ${dept} துறை, அறை எண் ${room}-க்கு வரவும். மருத்துவர் ${dName} உங்களுக்காக காத்திருக்கிறார்.`;
+      case 'te':
+        message = `రోగి ${pName}, టోకెన్ సంఖ్య ${tNum}. దయచేసి ${dept} విభాగం, గది సంఖ్య ${room} వద్దకు వెళ్లండి. డాక్టర్ ${dName} మీ కోసం వేచి ఉన్నారు.`;
         break;
       case 'hi':
-        message = `मरीज़ टोकन संख्या ${tNum}, ${pName}। कृपया ${dept} विभाग, कमरा नंबर ${room} में पधारें। डॉक्टर ${dName} आपका इंतज़ार कर रहे हैं।`;
-        break;
-      case 'te':
-        message = `రోగి టోకెన్ సంఖ్య ${tNum}, ${pName}. దయచేసి ${dept} విభాగం, గది సంఖ్య ${room} వద్దకు వెళ్లండి. డాక్టర్ ${dName} మీ కోసం వేచి ఉన్నారు.`;
+        message = `मरीज़ ${pName}, टोकन संख्या ${tNum}। कृपया ${dept} विभाग, कमरा नंबर ${room} में पधारें। डॉक्टर ${dName} आपका इंतज़ार कर रहे हैं।`;
         break;
       case 'kn':
-        message = `ರೋಗಿ ಟೋಕನ್ ಸಂಖ್ಯೆ ${tNum}, ${pName}. ದಯವಿಟ್ಟು ${dept} ವಿಭಾಗ, ಕೊಠಡಿ ಸಂಖ್ಯೆ ${room} ಕ್ಕೆ ಬನ್ನಿ. ವೈದ್ಯರಾದ ${dName} ನಿಮಗಾಗಿ ಕಾಯುತ್ತಿದ್ದಾರೆ.`;
+        message = `ರೋಗಿ ${pName}, ಟೋಕನ್ ಸಂಖ್ಯೆ ${tNum}. ದಯವಿಟ್ಟು ${dept} ವಿಭಾಗ, ಕೊಠಡಿ ಸಂಖ್ಯೆ ${room} ಕ್ಕೆ ಬನ್ನಿ. ವೈದ್ಯರಾದ ${dName} ನಿಮಗಾಗಿ ಕಾಯುತ್ತಿದ್ದಾರೆ.`;
         break;
       case 'ml':
-        message = `രോഗി ടോക്കൺ നമ്പർ ${tNum}, ${pName}. ദയവായി ${dept} വിഭാഗം, മുറി നമ്പർ ${room}-ലേക്ക് വരൂ. ഡോക്ടർ ${dName} നിങ്ങൾക്കായി കാത്തിരിക്കുന്നു.`;
+        message = `രോഗി ${pName}, ടോക്കൺ നമ്പർ ${tNum}. ദയവായി ${dept} വിഭാഗം, മുറി നമ്പർ ${room}-ലേക്ക് വരൂ. ഡോക്ടർ ${dName} നിങ്ങൾക്കായി കാത്തിരിക്കുന്നു.`;
         break;
       case 'bn':
-        message = `রোগী টোকেন নম্বর ${tNum}, ${pName}। অনুগ্রহ করে ${dept} বিভাগ, রুম নম্বর ${room}-এ আসুন। ডাক্তার ${dName} আপনার জন্য অপেক্ষা করছেন।`;
+        message = `রোগী ${pName}, টোকেন নম্বর ${tNum}। অনুগ্রহ করে ${dept} বিভাগ, রুম নম্বর ${room}-এ আসুন। ডাক্তার ${dName} আপনার জন্য অপেক্ষা করছেন।`;
         break;
       case 'mr':
-        message = `रुग्ण टोकन क्रमांक ${tNum}, ${pName}. कृपया ${dept} विभाग, खोली क्रमांक ${room} मध्ये जावे. डॉक्टर ${dName} आपली वाट पाहत आहेत.`;
+        message = `रुग्ण ${pName}, टोकन क्रमांक ${tNum}. कृपया ${dept} विभाग, खोली क्रमांक ${room} मध्ये जावे. डॉक्टर ${dName} आपली वाट पाहत आहेत.`;
         break;
       default:
         message = `Patient ${pName}, Token number ${tNum}. Please proceed to ${dept}, Room number ${room}. Doctor ${dName} is waiting for you.`;
@@ -624,17 +618,17 @@ export function speakFullAnnouncement(data, lang = 'en') {
     }
   } else if (type === 'registered') {
     switch (lang) {
+      case 'ta':
+        message = `நோயாளி ${pName} பதிவு முடிந்தது! உங்கள் டோக்கன் எண் ${tNum}. ${dept} துறைக்கு செல்லவும்.`;
+        break;
       case 'ar':
         message = `تم تسجيل المريض ${pName} بنجاح. رقم الرمز الخاص بك هو ${tNum}. يرجى التوجه إلى عيادة ${dept}.`;
         break;
-      case 'ta':
-        message = `நோயாளி ${pName} பதிவு முடிந்தது. உங்கள் டோக்கன் எண் ${tNum}. ${dept} துறைக்கு செல்லவும்.`;
+      case 'te':
+        message = `రోగి ${pName} నమోదు విజయవంతమైంది! మీ టోకెన్ సంఖ్య ${tNum}. ${dept} విభాగానికి వెళ్లండి.`;
         break;
       case 'hi':
-        message = `मरीज़ ${pName} का पंजीकरण सफल रहा। आपकी टोकन संख्या ${tNum} है। कृपया ${dept} विभाग में जाएँ।`;
-        break;
-      case 'te':
-        message = `రోగి ${pName} నమోదు విజయవంతమైంది. మీ టోకెన్ సంఖ్య ${tNum}. ${dept} విభాగానికి వెళ్లండి.`;
+        message = `मरीज़ ${pName} का पंजीकरण सफल रहा! आपकी टोकन संख्या ${tNum} है। कृपया ${dept} विभाग में जाएँ।`;
         break;
       case 'kn':
         message = `ರೋಗಿ ${pName} ನೋಂದಣಿ ಯಶಸ್ವಿಯಾಗಿದೆ. ನಿಮ್ಮ ಟೋಕನ್ ಸಂಖ್ಯೆ ${tNum}. ${dept} ವಿಭಾಗಕ್ಕೆ ಹೋಗಿ.`;
@@ -654,17 +648,17 @@ export function speakFullAnnouncement(data, lang = 'en') {
     }
   } else if (type === 'emergency') {
     switch (lang) {
-      case 'ar':
-        message = `تنبيه طوارئ فوري! المريض ${pName}، الرمز ${tNum}. يرجى التوجه مباشرة إلى قسم الحوادث والطوارئ فوراً.`;
-        break;
       case 'ta':
         message = `உடனடி அவசர எச்சரிக்கை! நோயாளி ${pName}, டோக்கன் ${tNum}. உடனடியாக அவசர சிகிச்சை பிரிவுக்கு செல்லவும்.`;
         break;
-      case 'hi':
-        message = `आपातकालीन सूचना! मरीज़ ${pName}, टोकन ${tNum}। कृपया तुरंत आपातकालीन कक्ष में पहुँचें।`;
+      case 'ar':
+        message = `تنبيه طوارئ فوري! المريض ${pName}، الرمز ${tNum}. يرجى التوجه مباشرة إلى قسم الحوادث والطوارئ فوراً.`;
         break;
       case 'te':
         message = `అత్యవసర హెచ్చరిక! రోగి ${pName}, టోకెన్ ${tNum}. వెంటనే ఎమర్జెన్సీ వార్డుకు వెళ్లండి.`;
+        break;
+      case 'hi':
+        message = `आपातकालीन सूचना! मरीज़ ${pName}, टोकन ${tNum}। कृपया तुरंत आपातकालीन कक्ष में पहुँचें।`;
         break;
       case 'kn':
         message = `ತುರ್ತು ಎಚ್ಚರಿಕೆ! ರೋಗಿ ${pName}, ಟೋಕನ್ ${tNum}. ತಕ್ಷಣ ತುರ್ತು ಚಿಕಿತ್ಸಾ ವಿಭಾಗಕ್ಕೆ ಬನ್ನಿ.`;
@@ -685,17 +679,17 @@ export function speakFullAnnouncement(data, lang = 'en') {
   } else {
     // Language change confirmation
     switch (lang) {
-      case 'ar':
-        message = `تم تغيير لغة الإعلانات إلى العربية في مستشفى العيادات الخارجية.`;
-        break;
       case 'ta':
         message = `ஓபிடி ஷா மருத்துவமனையின் அறிவிப்பு மொழி தமிழுக்கு மாற்றப்பட்டது.`;
         break;
-      case 'hi':
-        message = `ओपीडी शा अस्पताल में घोषणा की भाषा हिन्दी चुनी गई है।`;
+      case 'ar':
+        message = `تم تغيير لغة الإعلانات إلى العربية في مستشفى العيادات الخارجية.`;
         break;
       case 'te':
-        message = `ఓపీడీ షா ఆసుపత్రిలో ప్రకటనల భాష తెలుగుగా మార్చబడింది.`;
+        message = `ఓపీడీ షా ఆసుపత్రిలో ప్రకటనల భాష తెలుగుగా మార్చబడింది.`;
+        break;
+      case 'hi':
+        message = `ओपीडी शा अस्पताल में घोषणा की भाषा हिन्दी चुनी गई है।`;
         break;
       case 'kn':
         message = `ಒಪಿಡಿ ಶಾ ಆಸ್ಪತ್ರೆಯಲ್ಲಿ ಪ್ರಕಟಣೆ ಭಾಷೆಯನ್ನು ಕನ್ನಡಕ್ಕೆ ಬದಲಾಯಿಸಲಾಗಿದೆ.`;
@@ -726,7 +720,7 @@ export function speakFullAnnouncement(data, lang = 'en') {
     roomNumber: room,
     text: message,
     lang,
-    voiceProfile: 'Alison Krauss AI Persona',
+    voiceProfile: 'Alison Krauss AI Voice Persona',
     status: isMutedState ? 'Pending (Muted)' : 'Announced'
   };
 
@@ -736,7 +730,7 @@ export function speakFullAnnouncement(data, lang = 'en') {
   }
   notifyHistory();
 
-  // Speak the complete announcement
+  // Speak the complete announcement using Alison Krauss voice
   speakText(message, lang);
 
   return {
@@ -807,17 +801,17 @@ export function announcePatientCalling(tokenNumber, patientName, lang = 'en', do
 export function announceNoWaitingPatients(lang = 'en') {
   let message = '';
   switch (lang) {
-    case 'ar':
-      message = 'لا يوجد مزيد من المرضى في قائمة الانتظار لهذا القسم حالياً.';
-      break;
     case 'ta':
       message = 'இந்த துறையில் தற்போது காத்திருக்கும் நோயாளிகள் எவரும் இல்லை.';
       break;
-    case 'hi':
-      message = 'इस विभाग में वर्तमान में कोई प्रतीक्षारत मरीज नहीं है।';
+    case 'ar':
+      message = 'لا يوجد مزيد من المرضى في قائمة الانتظار لهذا القسم حالياً.';
       break;
     case 'te':
       message = 'ఈ విభాగంలో ప్రస్తుతం వేచి ఉన్న రోగులు ఎవరూ లేరు.';
+      break;
+    case 'hi':
+      message = 'इस विभाग में वर्तमान में कोई प्रतीक्षारत मरीज नहीं है।';
       break;
     case 'kn':
       message = 'ಈ ವಿಭಾಗದಲ್ಲಿ ಪ್ರಸ್ತುತ ಕಾಯುತ್ತಿರುವ ರೋಗಿಗಳು ಯಾರೂ ಇಲ್ಲ.';

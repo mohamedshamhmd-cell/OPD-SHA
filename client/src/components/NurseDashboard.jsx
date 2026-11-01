@@ -19,6 +19,7 @@ import {
   Clipboard,
   PhoneCall
 } from 'lucide-react';
+import { speakFullAnnouncement } from '../services/speech';
 
 const i18n = {
   en: {
@@ -198,16 +199,13 @@ export default function NurseDashboard({
 
   const announceNurseEscort = (patient) => {
     try {
-      const msg = currentLang === 'ar'
-        ? `يرجى من المريض ${patient.name}، رقم ${patient.token_number}، التوجه إلى ${patient.room}`
-        : `Patient ${patient.name}, Token ${patient.token_number}, please proceed to ${patient.room}. Nurse escort is on the way.`;
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(msg);
-        utterance.lang = currentLang === 'ar' ? 'ar-SA' : 'en-US';
-        utterance.rate = 0.9;
-        window.speechSynthesis.speak(utterance);
-      }
+      speakFullAnnouncement({
+        type: 'call',
+        patientName: patient.name,
+        tokenNumber: patient.token_number,
+        doctorName: patient.doctor || 'Doctor',
+        roomNumber: patient.room || 'Room 101'
+      }, currentLang);
     } catch (err) {
       console.error('Voice announcement failed', err);
     }
