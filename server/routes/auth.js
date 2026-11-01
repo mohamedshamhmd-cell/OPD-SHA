@@ -89,8 +89,7 @@ router.post('/passkey/register-options', async (req, res) => {
           { type: 'public-key', alg: -257 } // RS256
         ],
         authenticatorSelection: {
-          authenticatorAttachment: 'platform', // Windows Hello, Touch ID, Face ID
-          userVerification: 'required',
+          userVerification: 'preferred',
           residentKey: 'preferred'
         },
         timeout: 60000,
@@ -168,7 +167,7 @@ router.post('/passkey/login-options', async (req, res) => {
       options: {
         challenge,
         timeout: 60000,
-        userVerification: 'required',
+        userVerification: 'preferred',
         allowCredentials
       }
     });

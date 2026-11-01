@@ -103,7 +103,7 @@ export async function registerPasskey(username = 'admin', deviceName = 'Admin De
         rp: { name: 'OPD SHA Hospital System', id: window.location.hostname },
         user: { id: bufferToBase64url(new TextEncoder().encode(username)), name: username, displayName: 'Hospital Administrator' },
         pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
-        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+        authenticatorSelection: { userVerification: 'preferred', residentKey: 'preferred' },
         timeout: 60000
       };
     }
@@ -209,7 +209,7 @@ export async function loginWithPasskey(username = 'admin') {
       options = {
         challenge: bufferToBase64url(challengeBuf),
         timeout: 60000,
-        userVerification: 'required',
+        userVerification: 'preferred',
         allowCredentials: saved.map(s => ({ id: s.id, type: 'public-key' }))
       };
     }
@@ -217,7 +217,7 @@ export async function loginWithPasskey(username = 'admin') {
     const publicKeyCredentialRequestOptions = {
       challenge: base64urlToBuffer(options.challenge),
       timeout: options.timeout || 60000,
-      userVerification: 'required'
+      userVerification: 'preferred'
     };
 
     if (options.allowCredentials && options.allowCredentials.length > 0) {

@@ -78,6 +78,15 @@ export default function AdminDashboard({
   const [faceLiveness, setFaceLiveness] = useState(0);
   const [faceFeedback, setFaceFeedback] = useState('');
   const [faceProgress, setFaceProgress] = useState(0);
+  const [passkeyDeviceName, setPasskeyDeviceName] = useState(() => {
+    if (typeof navigator !== 'undefined' && navigator.userAgent) {
+      if (navigator.userAgent.includes('Windows')) return 'Windows PC (Hello Biometrics)';
+      if (navigator.userAgent.includes('Macintosh')) return 'Mac (Touch ID / Passkey)';
+      if (navigator.userAgent.includes('iPhone')) return 'iPhone (Face ID)';
+      if (navigator.userAgent.includes('Android')) return 'Android Phone Biometrics';
+    }
+    return 'Primary Admin Device';
+  });
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -115,19 +124,22 @@ export default function AdminDashboard({
   };
 
   const handleQuickResetDemo = () => {
-    if (window.confirm('Reset demo data to initial realistic hospital records?')) {
-      seedDemoData();
-      window.location.reload();
-    }
+    try {
+      if (typeof window !== 'undefined' && window.confirm && !window.confirm('Reset demo data to initial realistic hospital records?')) {
+        return;
+      }
+    } catch {}
+    seedDemoData();
+    window.location.reload();
   };
 
-  // PASSKEY REGISTRATION (OPTION A)
+  // PASSKEY REGISTRATION (OPTION A) - Zero prompt() calls for maximum browser compatibility
   const handleRegisterPasskey = async () => {
     setPasskeyLoading(true);
     setSecurityMessage({ type: '', text: '' });
     try {
-      const deviceName = prompt('Enter a label for this device (e.g. Admin Windows Laptop, iPad Pro):', 'Admin Primary Device') || 'Admin Device';
-      const res = await registerPasskey('admin', deviceName);
+      const label = passkeyDeviceName.trim() || 'Admin Biometric Device';
+      const res = await registerPasskey('admin', label);
       if (res.success) {
         setSecurityMessage({ type: 'success', text: res.message });
         await loadSecurityStatus();
@@ -382,15 +394,25 @@ export default function AdminDashboard({
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={handleRegisterPasskey}
-                disabled={passkeyLoading}
-                className="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-indigo-600/20 transition shrink-0 disabled:opacity-50"
-              >
-                {passkeyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                <span>{passkeyLoading ? 'Authenticating Device...' : 'Register This Device / Passkey'}</span>
-              </button>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+                <input
+                  type="text"
+                  value={passkeyDeviceName}
+                  onChange={(e) => setPasskeyDeviceName(e.target.value)}
+                  placeholder="Device Label"
+                  title="Label for this device"
+                  className="px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[200px]"
+                />
+                <button
+                  type="button"
+                  onClick={handleRegisterPasskey}
+                  disabled={passkeyLoading}
+                  className="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-indigo-600/20 transition disabled:opacity-50"
+                >
+                  {passkeyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  <span>{passkeyLoading ? 'Authenticating Device...' : 'Register This Device / Passkey'}</span>
+                </button>
+              </div>
             </div>
 
             {/* Registered Passkeys List */}
