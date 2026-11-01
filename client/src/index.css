@@ -110,6 +110,18 @@ body {
   animation: shake 0.4s ease-in-out;
 }
 
+/* Scan laser animation for face recognition */
+@keyframes scan-laser {
+  0% { top: 10%; }
+  50% { top: 85%; }
+  100% { top: 10%; }
+}
+
+.animate-scan-laser {
+  position: relative;
+  animation: scan-laser 2s ease-in-out infinite;
+}
+
 /* Accessible Focus Outlines */
 a:focus-visible,
 button:focus-visible,

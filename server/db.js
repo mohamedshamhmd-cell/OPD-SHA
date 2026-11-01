@@ -190,6 +190,42 @@ async function initSchemaAndSeed(db) {
   try { db.run("ALTER TABLE patients ADD COLUMN doctor_room TEXT;"); } catch (e) {}
   try { db.run("ALTER TABLE patients ADD COLUMN announcement_status TEXT DEFAULT 'PENDING';"); } catch (e) {}
 
+  // 6. Security Tables for WebAuthn Passkeys & Face Recognition
+  db.run(`
+    CREATE TABLE IF NOT EXISTS admin_passkeys (
+      id TEXT PRIMARY KEY,
+      username TEXT NOT NULL,
+      public_key TEXT NOT NULL,
+      counter INTEGER DEFAULT 0,
+      device_name TEXT,
+      created_at TEXT,
+      last_used_at TEXT
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS admin_face_templates (
+      username TEXT PRIMARY KEY,
+      template_hash TEXT NOT NULL,
+      embedding_json TEXT NOT NULL,
+      liveness_score REAL DEFAULT 0.95,
+      created_at TEXT,
+      updated_at TEXT
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS auth_audit_log (
+      id TEXT PRIMARY KEY,
+      username TEXT,
+      method TEXT,
+      status TEXT,
+      reason TEXT,
+      ip_address TEXT,
+      timestamp TEXT
+    );
+  `);
+
   // Check if doctors table is populated
   const existingDocs = db.query('SELECT COUNT(*) AS count FROM doctors;');
   if (existingDocs[0].count === 0) {
