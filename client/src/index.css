@@ -11,16 +11,30 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Font Size Scaling Classes */
-.font-scale-0 {
-  --font-base: 15px;
+/* Font Size Scaling Classes - Forced Cascade for All Elements */
+.font-scale-0,
+.font-scale-0 * {
+  font-size: 14px !important;
 }
+.font-scale-0 h1 { font-size: 22px !important; }
+.font-scale-0 h2 { font-size: 18px !important; }
+.font-scale-0 h3 { font-size: 16px !important; }
+.font-scale-0 .text-3xl { font-size: 24px !important; }
+.font-scale-0 .text-4xl { font-size: 28px !important; }
+
 .font-scale-1 {
-  --font-base: 17px;
+  /* standard / normal */
 }
-.font-scale-2 {
-  --font-base: 19px;
+
+.font-scale-2,
+.font-scale-2 * {
+  font-size: 18px !important;
 }
+.font-scale-2 h1 { font-size: 30px !important; }
+.font-scale-2 h2 { font-size: 26px !important; }
+.font-scale-2 h3 { font-size: 22px !important; }
+.font-scale-2 .text-3xl { font-size: 34px !important; }
+.font-scale-2 .text-4xl { font-size: 42px !important; }
 
 body {
   margin: 0;

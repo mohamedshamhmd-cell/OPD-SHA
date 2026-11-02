@@ -186,7 +186,7 @@ export default function ReportsAnalytics({
               Today's Patients by Clinical Department
             </h3>
             <div className="space-y-4">
-              {dailyData.department_breakdown.map((dept, i) => {
+              {Array.isArray(dailyData.department_breakdown) ? dailyData.department_breakdown.map((dept, i) => {
                 const percent = Math.round((dept.count / (dailyData.total_patients || 1)) * 100);
                 const colors = ['bg-indigo-600', 'bg-emerald-500', 'bg-blue-500', 'bg-amber-500', 'bg-purple-500', 'bg-rose-500'];
                 const barColor = colors[i % colors.length];
@@ -196,6 +196,25 @@ export default function ReportsAnalytics({
                     <div className="flex justify-between items-center text-xs">
                       <span className="font-bold text-slate-800 dark:text-slate-200">{dept.department}</span>
                       <span className="font-mono text-slate-500 font-semibold">{dept.count} patients ({percent}%)</span>
+                    </div>
+                    <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-500 ${barColor}`} 
+                        style={{ width: `${Math.max(percent, 4)}%` }} 
+                      />
+                    </div>
+                  </div>
+                );
+              }) : Object.keys(dailyData.department_breakdown || {}).map((deptName, i) => {
+                const count = dailyData.department_breakdown[deptName];
+                const percent = Math.round((count / (dailyData.total_patients || 1)) * 100);
+                const colors = ['bg-indigo-600', 'bg-emerald-500', 'bg-blue-500', 'bg-amber-500', 'bg-purple-500', 'bg-rose-500'];
+                const barColor = colors[i % colors.length];
+                return (
+                  <div key={deptName} className="space-y-1.5">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-slate-800 dark:text-slate-200">{deptName}</span>
+                      <span className="font-mono text-slate-500 font-semibold">{count} patients ({percent}%)</span>
                     </div>
                     <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                       <div 
@@ -250,7 +269,7 @@ export default function ReportsAnalytics({
             <p className="text-xs text-slate-400 mb-6">Day-by-day distribution throughout the current calendar month</p>
 
             <div className="flex items-end gap-1.5 h-48 pt-6 border-b border-slate-200 dark:border-slate-800 px-2 overflow-x-auto">
-              {monthlyData.daily_counts.slice(0, 24).map((d) => {
+              {Array.isArray(monthlyData.daily_counts) && monthlyData.daily_counts.slice(0, 24).map((d) => {
                 const maxVal = Math.max(...monthlyData.daily_counts.map(x => x.count), 40);
                 const heightPercent = Math.max((d.count / maxVal) * 100, 10);
 

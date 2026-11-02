@@ -275,34 +275,68 @@ export function getAlisonKraussVoice(voices) {
 // 1. TAMIL TRANSLITERATOR
 function toTamilPhonetic(text) {
   if (!text) return '';
-  return text
-    .replace(/ஓபிடி\s*ஷா\s*மருத்துவமனை/gi, 'OPD Sha Maruthuvamanai')
-    .replace(/மருத்துவமனைக்கு\s*நல்வரவு/gi, 'Maruthuvamanaikku nalvaravu')
-    .replace(/அறிவிப்பு\s*மொழி\s*தமிழுக்கு\s*மாற்றப்பட்டது/gi, 'Arivippu mozhi Tamilukku maatrapattadhu. Ungalai anbudan varaverkirom')
-    .replace(/அவசர\s*பதிவு\s*வெற்றிகரமானது/gi, 'Avasara padhivu vetrigaramaanadhu')
-    .replace(/அவசர\s*சிகிச்சை\s*சேவை\s*இயக்கப்பட்டது/gi, 'Avasara chikitsai sevai iyakkappattadhu')
-    .replace(/ட்ராமா\s*பே\s*1-க்கு\s*உடனே\s*செல்லவும்/gi, 'Trauma Bay 1-kku udane sellavum')
-    .replace(/முன்பதிவு\s*உறுதிசெய்யப்பட்டது/gi, 'Munpadhivu urudhisaiyappattadhu')
-    .replace(/பதிவு\s*முடிந்தது/gi, 'Padhivu mudindhadhu')
-    .replace(/டோக்கன்\s*எண்/gi, 'Token enn')
-    .replace(/உங்கள்\s*டோக்கன்\s*எண்/gi, 'Ungal token enn')
-    .replace(/ஆலோசனை\s*அறை/gi, 'Aalosanai arai')
-    .replace(/அறை\s*எண்/gi, 'Arai enn')
-    .replace(/மருத்துவர்/gi, 'Doctor')
-    .replace(/உங்களுக்காக\s*காத்திருக்கிறார்/gi, 'ungalukkaaga kaathirukkiraar')
-    .replace(/தயவுசெய்து/gi, 'dayavuseidhu')
-    .replace(/வரவும்/gi, 'varavum')
-    .replace(/செல்லவும்/gi, 'sellavum')
-    .replace(/உடனே/gi, 'udane')
-    .replace(/காத்திருக்கும்\s*நோயாளிகள்\s*எவரும்\s*இல்லை/gi, 'kaathirukkum noyaaligal evarum illai')
-    .replace(/நோயாளி/gi, 'Noyaali')
-    .replace(/துறை/gi, 'thurai')
-    .replace(/காத்திருக்கவும்/gi, 'kaathirukkavum')
-    .replace(/பொறுப்பேற்று/gi, 'poruppetru')
-    .replace(/அழைத்துச்\s*செல்லவும்/gi, 'azhaithu sellavum')
-    .replace(/காத்திருப்பு\s*அறையிலிருந்து/gi, 'kaathiruppu araiyilirundhu')
-    // Character-level cleanup for any unmapped Tamil characters
-    .replace(/[அ-ஔக-ஹா-்]/g, ' ');
+  let str = text;
+
+  // Key phrases
+  str = str
+    .replace(/ஓபிடி\s*ஷா\s*மருத்துவமனை[க்கு]*[ன்]*/gi, 'OPD Sha Maruthuvamanai ')
+    .replace(/மருத்துவமனைக்கு\s*நல்வரவு/gi, 'Maruthuvamanaikku nalvaravu ')
+    .replace(/அறிவிப்பு\s*மொழி\s*தமிழுக்கு\s*மாற்றப்பட்டது/gi, 'Arivippu mozhi Tamilukku maatrapattadhu. Ungalai anbudan varaverkirom ')
+    .replace(/அவசர\s*பதிவு\s*வெற்றிகரமானது/gi, 'Avasara padhivu vetrigaramaanadhu ')
+    .replace(/அவசர\s*சிகிச்சை\s*சேவை\s*இயக்கப்பட்டது/gi, 'Avasara chikitsai sevai iyakkappattadhu ')
+    .replace(/உடனடி\s*அவசர\s*எச்சரிக்கை[!.]*/gi, 'Udanadi avasara echarikkai! ')
+    .replace(/உடனடியாக\s*அவசர\s*சிகிச்சை\s*பிரிவுக்கு\s*செல்லவும்/gi, 'udanadiyaaga avasara chikitsai pirivukku sellavum ')
+    .replace(/ட்ராமா\s*பே\s*1-க்கு\s*உடனே\s*செல்லவும்/gi, 'Trauma Bay 1-kku udane sellavum ')
+    .replace(/முன்பதிவு\s*உறுதிசெய்யப்பட்டது/gi, 'Munpadhivu urudhisaiyappattadhu ')
+    .replace(/பதிவு\s*முடிந்தது[!.]*/gi, 'Padhivu mudindhadhu! ')
+    .replace(/உங்கள்\s*டோக்கன்\s*எண்/gi, 'Ungal token enn ')
+    .replace(/டோக்கன்\s*எண்/gi, 'Token enn ')
+    .replace(/டோக்கன்/gi, 'Token ')
+    .replace(/ஆலோசனை\s*அறை/gi, 'Aalosanai arai ')
+    .replace(/அறை\s*எண்/gi, 'Arai enn ')
+    .replace(/மருத்துவர்/gi, 'Doctor ')
+    .replace(/உங்களுக்காக\s*காத்திருக்கிறார்/gi, 'ungalukkaaga kaathirukkiraar ')
+    .replace(/தயவுசெய்து/gi, 'dayavuseidhu ')
+    .replace(/வரவும்/gi, 'varavum ')
+    .replace(/செல்லவும்/gi, 'sellavum ')
+    .replace(/உடனே/gi, 'udane ')
+    .replace(/காத்திருக்கும்\s*நோயாளிகள்\s*எவரும்\s*இல்லை/gi, 'kaathirukkum noyaaligal evarum illai ')
+    .replace(/நோயாளி/gi, 'Noyaali ')
+    .replace(/துறைக்கு\s*செல்லவும்/gi, 'thurai-kku sellavum ')
+    .replace(/துறை/gi, 'thurai ')
+    .replace(/காத்திருக்கவும்/gi, 'kaathirukkavum ')
+    .replace(/பொறுப்பேற்று/gi, 'poruppetru ')
+    .replace(/அழைத்துச்\s*செல்லவும்/gi, 'azhaithu sellavum ')
+    .replace(/காத்திருப்பு\s*அறையிலிருந்து/gi, 'kaathiruppu araiyilirundhu ');
+
+  // Syllables transliteration table
+  const tamilMap = {
+    'அ': 'a', 'ஆ': 'aa', 'இ': 'i', 'ஈ': 'ee', 'உ': 'u', 'ஊ': 'oo', 'எ': 'e', 'ஏ': 'ae', 'ஐ': 'ai', 'ஒ': 'o', 'ஓ': 'oh', 'ஔ': 'au',
+    'க': 'ka', 'கா': 'kaa', 'கி': 'ki', 'கீ': 'kee', 'கு': 'ku', 'கூ': 'koo', 'கெ': 'ke', 'கே': 'kae', 'கை': 'kai', 'கொ': 'ko', 'கோ': 'koh', 'கௌ': 'kau', 'க்': 'k',
+    'ச': 'sa', 'சா': 'saa', 'சி': 'si', 'சீ': 'see', 'சு': 'su', 'சூ': 'soo', 'செ': 'se', 'சே': 'sae', 'சை': 'sai', 'சொ': 'so', 'சோ': 'soh', 'சௌ': 'sau', 'ச்': 'ch',
+    'த': 'tha', 'தா': 'thaa', 'தி': 'thi', 'தீ': 'thee', 'து': 'thu', 'தூ': 'thoo', 'தெ': 'the', 'தே': 'thae', 'தை': 'thai', 'தொ': 'tho', 'தோ': 'thoh', 'தௌ': 'thau', 'த்': 'th',
+    'ப': 'pa', 'பா': 'paa', 'பி': 'pi', 'பீ': 'pee', 'பு': 'pu', 'பூ': 'poo', 'பெ': 'pe', 'பே': 'pae', 'பை': 'pai', 'பொ': 'po', 'போ': 'poh', 'பௌ': 'pau', 'ப்': 'p',
+    'ம': 'ma', 'மா': 'maa', 'மி': 'mi', 'மீ': 'mee', 'மு': 'mu', 'மூ': 'moo', 'மெ': 'me', 'மே': 'mae', 'மை': 'mai', 'மொ': 'mo', 'மோ': 'moh', 'மௌ': 'mau', 'ம்': 'm',
+    'ய': 'ya', 'யா': 'yaa', 'யி': 'yi', 'யீ': 'yee', 'யு': 'yu', 'யூ': 'yoo', 'ய்': 'y',
+    'ர': 'ra', 'ரா': 'raa', 'ரி': 'ri', 'ரீ': 'ree', 'ரு': 'ru', 'ரூ': 'roo', 'ர்': 'r',
+    'ல': 'la', 'லா': 'laa', 'லி': 'li', 'லீ': 'lee', 'லு': 'lu', 'லூ': 'loo', 'ல்': 'l',
+    'வ': 'va', 'வா': 'vaa', 'வி': 'vi', 'வீ': 'vee', 'வு': 'vu', 'வூ': 'voo', 'வ்': 'v',
+    'ழ': 'zha', 'ழா': 'zhaa', 'ழி': 'zhi', 'ழீ': 'zhee', 'ழு': 'zhu', 'ழூ': 'zhoo', 'ழ்': 'zh',
+    'ள': 'la', 'ளா': 'laa', 'ளி': 'li', 'ளீ': 'lee', 'ளு': 'lu', 'ளூ': 'loo', 'ள்': 'l',
+    'ற': 'ra', 'றா': 'raa', 'றி': 'ri', 'றீ': 'ree', 'று': 'ru', 'றூ': 'roo', 'ற்': 'r',
+    'ன': 'na', 'னா': 'naa', 'னி': 'ni', 'னீ': 'nee', 'னு': 'nu', 'னூ': 'noo', 'ன்': 'n',
+    'ண': 'na', 'ணா': 'naa', 'ணி': 'ni', 'ணீ': 'nee', 'ணு': 'nu', 'ணூ': 'noo', 'ண்': 'n',
+    'ந': 'na', 'நா': 'naa', 'நி': 'ni', 'நீ': 'nee', 'நு': 'nu', 'நூ': 'noo', 'ந்': 'n',
+    'ட': 'ta', 'டா': 'taa', 'டி': 'ti', 'டீ': 'tee', 'டு': 'tu', 'டூ': 'too', 'ட்': 't',
+    'ங': 'nga', 'ஞ்': 'nj', 'ஜ': 'ja', 'ஷா': 'sha', 'ஷ': 'sh', 'ஸ': 'sa', 'ஹ': 'ha'
+  };
+
+  for (const [k, v] of Object.entries(tamilMap)) {
+    str = str.replaceAll(k, v);
+  }
+
+  // Remove any remaining stray unicode markers and clean spaces
+  return str.replace(/[\u0B80-\u0BFF]/g, '').replace(/\s+/g, ' ').trim();
 }
 
 // 2. ARABIC TRANSLITERATOR

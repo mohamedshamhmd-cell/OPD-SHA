@@ -50,6 +50,45 @@ export default function App() {
   const [selectedDoctorForBooking, setSelectedDoctorForBooking] = useState(null);
   const [prescriptionPatient, setPrescriptionPatient] = useState(null);
 
+  // Custom Wallpaper and Text Watermark state with persistence
+  const [wallpaper, setWallpaper] = useState(() => {
+    try {
+      return localStorage.getItem('opd_custom_wallpaper') || '';
+    } catch {
+      return '';
+    }
+  });
+
+  const [watermarkText, setWatermarkText] = useState(() => {
+    try {
+      return localStorage.getItem('opd_custom_watermark') || '';
+    } catch {
+      return '';
+    }
+  });
+
+  const handleSetWallpaper = (dataUrl) => {
+    setWallpaper(dataUrl);
+    try {
+      if (dataUrl) {
+        localStorage.setItem('opd_custom_wallpaper', dataUrl);
+      } else {
+        localStorage.removeItem('opd_custom_wallpaper');
+      }
+    } catch {}
+  };
+
+  const handleSetWatermark = (text) => {
+    setWatermarkText(text);
+    try {
+      if (text) {
+        localStorage.setItem('opd_custom_watermark', text);
+      } else {
+        localStorage.removeItem('opd_custom_watermark');
+      }
+    } catch {}
+  };
+
   const [slipData, setSlipData] = useState(() => {
     try {
       const saved = localStorage.getItem('hospital_last_slip');
@@ -213,7 +252,27 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col font-scale-${fontSizeLevel} ${highContrast ? 'high-contrast dark' : ''} ${darkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
+    <div 
+      className={`min-h-screen flex flex-col font-scale-${fontSizeLevel} ${highContrast ? 'high-contrast dark' : ''} ${darkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-800'} relative`}
+      style={wallpaper ? {
+        backgroundImage: `linear-gradient(rgba(15, 23, 42, ${darkMode ? '0.85' : '0.45'}), rgba(15, 23, 42, ${darkMode ? '0.85' : '0.45'})), url(${wallpaper})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      } : {}}
+    >
+      {/* Background Watermark Overlay */}
+      {watermarkText && (
+        <div 
+          className="fixed inset-0 pointer-events-none select-none z-0 flex items-center justify-center overflow-hidden opacity-10 dark:opacity-15"
+          style={{ transform: 'rotate(-25deg)' }}
+        >
+          <span className="text-6xl sm:text-8xl md:text-9xl font-black uppercase tracking-widest text-slate-900 dark:text-white whitespace-nowrap">
+            {watermarkText}
+          </span>
+        </div>
+      )}
+
       {/* Accessible Header */}
       <Header
         activeTab={activeTab}
@@ -231,10 +290,14 @@ export default function App() {
         onTriggerSOS={handleTriggerSOS}
         hasSlip={Boolean(slipData)}
         t={t}
+        wallpaper={wallpaper}
+        watermarkText={watermarkText}
+        onSetWallpaper={handleSetWallpaper}
+        onSetWatermark={handleSetWatermark}
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative z-10">
         {/* LOGIN PORTAL TAB */}
         {activeTab === 'login' && (
           <LoginPage

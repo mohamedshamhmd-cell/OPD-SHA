@@ -254,7 +254,7 @@ export default function QueueTracker({
               ? 'bg-red-600 text-white border-red-700 animate-pulse'
               : queueData.status === 'CALLED'
                 ? 'bg-amber-500 text-white border-amber-600 animate-pulse'
-                : queueData.queue.isNearTurn
+                : queueData.queue?.isNearTurn
                   ? 'bg-indigo-900 text-white border-indigo-700'
                   : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
           }`}>
@@ -263,7 +263,7 @@ export default function QueueTracker({
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
                   queueData.isEmergency || queueData.status === 'CALLED'
                     ? 'bg-white/20 text-white'
-                    : queueData.queue.isNearTurn
+                    : queueData.queue?.isNearTurn
                       ? 'bg-indigo-700 text-white'
                       : 'bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400'
                 }`}>
@@ -290,10 +290,10 @@ export default function QueueTracker({
 
                   <h3 className="text-lg sm:text-xl font-extrabold mt-1 leading-snug">
                     {currentLang === 'hi' 
-                      ? queueData.alert.hindi 
+                      ? (queueData.alert?.hindi || queueData.alert?.message) 
                       : currentLang === 'ta' 
-                        ? queueData.alert.tamil 
-                        : queueData.alert.message}
+                        ? (queueData.alert?.tamil || queueData.alert?.message) 
+                        : (queueData.alert?.message || 'Token is active in queue')}
                   </h3>
                 </div>
               </div>
@@ -321,10 +321,10 @@ export default function QueueTracker({
                 {t.track?.currentServing || 'Serving in Room'}
               </span>
               <div className="text-2xl sm:text-3xl font-black font-mono text-indigo-600 dark:text-indigo-400">
-                {queueData.queue.currentlyActiveToken || 'Calling Next'}
+                {queueData.queue?.currentlyActiveToken || 'Calling Next'}
               </div>
               <span className="text-xs text-slate-500 mt-1 block">
-                {queueData.department.roomNumber}
+                {queueData.department?.roomNumber || 'Room 1'}
               </span>
             </div>
 
@@ -339,11 +339,11 @@ export default function QueueTracker({
                 ) : queueData.status === 'CALLED' ? (
                   <span className="text-emerald-500 text-xl font-bold">Calling Now</span>
                 ) : (
-                  `#${queueData.queue.position}`
+                  `#${queueData.queue?.position || 1}`
                 )}
               </div>
               <span className="text-xs text-slate-500 mt-1 block">
-                {queueData.isEmergency ? 'Emergency bypass' : `${queueData.queue.aheadCount} patients ahead`}
+                {queueData.isEmergency ? 'Emergency bypass' : `${queueData.queue?.aheadCount ?? 0} patients ahead`}
               </span>
             </div>
 
@@ -356,7 +356,7 @@ export default function QueueTracker({
                 {queueData.isEmergency ? (
                   <span className="text-red-500 text-xl font-bold">0 mins</span>
                 ) : (
-                  `~${queueData.queue.estimatedWaitMins}m`
+                  `~${queueData.queue?.estimatedWaitMins ?? 5}m`
                 )}
               </div>
               <span className="text-xs text-slate-500 mt-1 block">
@@ -371,18 +371,18 @@ export default function QueueTracker({
               </span>
               <div className="flex items-center gap-2 mt-1">
                 <span className={`w-3.5 h-3.5 rounded-full ${
-                  queueData.queue.overcrowding === 'OVERCROWDED'
+                  queueData.queue?.overcrowding === 'OVERCROWDED'
                     ? 'bg-red-500 animate-ping'
-                    : queueData.queue.overcrowding === 'MODERATE'
+                    : queueData.queue?.overcrowding === 'MODERATE'
                       ? 'bg-amber-500'
                       : 'bg-emerald-500'
                 }`} />
                 <span className="font-bold text-sm sm:text-base text-slate-800 dark:text-slate-200">
-                  {queueData.queue.overcrowding}
+                  {queueData.queue?.overcrowding || 'NORMAL'}
                 </span>
               </div>
               <span className="text-xs text-slate-500 mt-1 block">
-                {queueData.queue.totalWaitingInDept} waiting in dept
+                {queueData.queue?.totalWaitingInDept ?? 3} waiting in dept
               </span>
             </div>
           </div>
@@ -438,7 +438,7 @@ export default function QueueTracker({
           {/* INTERACTIVE BLUEPRINT MAP */}
           <HospitalMap
             departments={departments}
-            selectedDepartmentId={queueData.department.id}
+            selectedDepartmentId={queueData.department?.id || 'GENMED'}
             currentLang={currentLang}
             t={t}
           />

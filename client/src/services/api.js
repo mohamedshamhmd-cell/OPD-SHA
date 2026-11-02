@@ -363,24 +363,59 @@ export async function fetchSlip(token) {
 export async function fetchQueueStatus(token) {
   try {
     const res = await fetch(`${API_BASE}/queue/${encodeURIComponent(token)}`);
-    if (res.ok) return await res.json();
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.success) return data;
+    }
   } catch {}
 
   const patients = getStoredPatients();
-  const patient = patients.find(p => p.token_number === token) || patients[0];
-  const dept = FALLBACK_DEPARTMENTS.find(d => d.id === patient.department_id) || FALLBACK_DEPARTMENTS[0];
+  const searchToken = (token || '').trim().toUpperCase();
+  const patient = patients.find(p => (p.token_number || '').toUpperCase() === searchToken) || patients[0];
+  const dept = FALLBACK_DEPARTMENTS.find(d => d.id === patient?.department_id) || FALLBACK_DEPARTMENTS[0];
+
+  const pos = patient?.is_emergency ? 1 : 2;
+  const isEmergency = Boolean(patient?.is_emergency);
 
   return {
     success: true,
+    tokenNumber: patient?.token_number || searchToken || 'CARD-102',
+    patientName: patient?.name || 'Ramesh Kumar',
+    patientAge: patient?.age || 45,
+    status: patient?.status || 'WAITING',
+    appointmentType: patient?.appointment_type || 'WALKIN',
+    slotTime: patient?.slot_time || '10:30 AM',
+    isEmergency,
     patient,
-    department: dept,
+    department: {
+      id: dept.id,
+      name: dept.name,
+      roomNumber: dept.room_number,
+      doctor: dept.doctor_in_charge,
+      floor: dept.floor_name,
+      color: dept.color
+    },
     queue: {
-      currentServing: 'ACTIVE-1',
-      position: patient.is_emergency ? 1 : 2,
-      patientsAhead: patient.is_emergency ? 0 : 1,
-      estimatedWaitMins: patient.is_emergency ? 0 : 10,
-      overcrowdingStatus: 'NORMAL',
-      totalWaitingInDept: 3
+      position: pos,
+      aheadCount: pos - 1,
+      estimatedWaitMins: isEmergency ? 0 : 10,
+      isNearTurn: true,
+      currentlyActiveToken: 'EMER-001',
+      totalWaitingInDept: 4,
+      overcrowding: 'NORMAL',
+      totalPatients: 12
+    },
+    alert: {
+      message: isEmergency 
+        ? 'EMERGENCY: Immediate treatment bay active.' 
+        : `Token ${patient?.token_number || 'CARD-102'} is currently in queue. Please proceed towards ${dept.room_number}.`,
+      hindi: isEmergency 
+        ? 'आपातकालीन: तुरंत ट्रॉमा बे में जाएँ।' 
+        : `टोकन ${patient?.token_number || 'CARD-102'} कतार में है। कृपया ${dept.room_number} की ओर बढ़ें।`,
+      tamil: isEmergency 
+        ? 'அவசர சிகிச்சை நெறிமுறை: உடனடியாக அறைக்கு செல்லவும்.' 
+        : `டோக்கன் ${patient?.token_number || 'CARD-102'} வரிசையில் உள்ளது. தயவுசெய்து ${dept.room_number} நோக்கி செல்லவும்.`,
+      isUrgent: isEmergency
     },
     directions: {
       text: dept.directions_text,
@@ -396,21 +431,55 @@ export async function fetchQueueStatus(token) {
 export async function fetchNavigation(deptId) {
   try {
     const res = await fetch(`${API_BASE}/navigation/${encodeURIComponent(deptId)}`);
-    if (res.ok) return await res.json();
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.success && data.steps) return data;
+    }
   } catch {}
 
   const dept = FALLBACK_DEPARTMENTS.find(d => d.id === deptId) || FALLBACK_DEPARTMENTS[0];
   return {
     success: true,
-    navigation: {
-      department: dept.name,
+    floor: { name: dept.floor_name || 'Ground Floor', id: dept.floor_id || 'GF' },
+    ward: { name: dept.ward_name || 'Central Clinical Wing', wing: 'East Wing' },
+    department: {
+      name: dept.name,
       floor: dept.floor_name,
       ward: dept.ward_name,
       room: dept.room_number,
       directions: dept.directions_text,
       landmark: dept.landmark,
       color: dept.color
-    }
+    },
+    steps: [
+      {
+        stepNumber: 1,
+        title: 'Start at Main Registration',
+        titleHindi: 'मुख्य पंजीकरण से शुरू करें',
+        titleTamil: 'முதன்மை பதிவிலிருந்து தொடங்கவும்',
+        instruction: 'From the main lobby entrance, face the central reception counter.',
+        instructionHindi: 'मुख्य प्रवेश द्वार से केंद्रीय स्वागत काउंटर की ओर बढ़ें।',
+        instructionTamil: 'முக்கிய நுழைவாயிலில் இருந்து வரவேற்பு கவுண்ட்டரை நோக்கி செல்லவும்.'
+      },
+      {
+        stepNumber: 2,
+        title: 'Follow Floor Direction Line',
+        titleHindi: 'गलियारे की लाइन का पालन करें',
+        titleTamil: 'தரை வண்ணக் கோட்டைப் பின்தொடரவும்',
+        instruction: dept.directions_text,
+        instructionHindi: dept.directions_hindi,
+        instructionTamil: dept.directions_tamil
+      },
+      {
+        stepNumber: 3,
+        title: `Arrive at ${dept.room_number}`,
+        titleHindi: `कक्ष ${dept.room_number} पर पहुँचें`,
+        titleTamil: `அறை ${dept.room_number}-க்கு சென்றடையவும்`,
+        instruction: `Locate ${dept.room_number}. Check-in with the nurse station right beside the consultation room door.`,
+        instructionHindi: `${dept.room_number} पर जाएँ और नर्स स्टेशन पर रिपोर्ट करें।`,
+        instructionTamil: `${dept.room_number}-ல் உள்ள செவிலியர் மையத்தில் டோக்கனை சமர்ப்பிக்கவும்.`
+      }
+    ]
   };
 }
 

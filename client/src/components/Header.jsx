@@ -21,7 +21,10 @@ import {
   User,
   BarChart3,
   ShieldCheck,
-  HeartPulse
+  HeartPulse,
+  Image as ImageIcon,
+  Type as TypeIcon,
+  Trash2
 } from 'lucide-react';
 import { subscribeSpeechState, stopSpeaking } from '../services/speech';
 
@@ -40,9 +43,15 @@ export default function Header({
   onLogout = () => {},
   onTriggerSOS = () => {},
   hasSlip = false,
-  t = {}
+  t = {},
+  onSetWallpaper = () => {},
+  onSetWatermark = () => {},
+  wallpaper = '',
+  watermarkText = ''
 }) {
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showWatermarkInput, setShowWatermarkInput] = useState(false);
+  const [watermarkVal, setWatermarkVal] = useState(watermarkText);
 
   useEffect(() => {
     const unsub = subscribeSpeechState((speaking) => {
@@ -150,6 +159,96 @@ export default function Header({
               <Sun className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{t.accessibility?.contrast || 'Contrast'}</span>
             </button>
+
+            {/* Custom Wallpaper Upload / Browse Button */}
+            <div className="flex items-center gap-1">
+              <label 
+                className="px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 cursor-pointer transition shadow-xs"
+                title="Browse & upload background wallpaper from computer"
+              >
+                <ImageIcon className="w-3.5 h-3.5 text-sky-400" />
+                <span>Wallpaper</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        onSetWallpaper(event.target.result);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+              </label>
+
+              {wallpaper && (
+                <button
+                  type="button"
+                  onClick={() => onSetWallpaper('')}
+                  className="p-1 rounded-lg bg-red-900/60 hover:bg-red-800 text-red-200 border border-red-700 text-[10px]"
+                  title="Remove custom wallpaper"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Background Text Watermark Control */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowWatermarkInput(!showWatermarkInput)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 border transition ${
+                  watermarkText
+                    ? 'bg-purple-900/80 text-purple-200 border-purple-500 shadow-xs'
+                    : 'bg-slate-800 text-slate-300 hover:text-white border-slate-700'
+                }`}
+                title="Set text watermark in background"
+              >
+                <TypeIcon className="w-3.5 h-3.5 text-purple-400" />
+                <span>Watermark</span>
+              </button>
+
+              {showWatermarkInput && (
+                <div className="absolute right-0 top-9 w-64 p-3 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 flex flex-col gap-2">
+                  <span className="text-[11px] font-bold text-slate-300">Set Background Watermark Text:</span>
+                  <input
+                    type="text"
+                    value={watermarkVal}
+                    onChange={(e) => setWatermarkVal(e.target.value)}
+                    placeholder="e.g. AIIMS NEW DELHI / OPD SHA"
+                    className="w-full px-2.5 py-1.5 text-xs bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  />
+                  <div className="flex justify-end gap-1.5 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSetWatermark('');
+                        setWatermarkVal('');
+                        setShowWatermarkInput(false);
+                      }}
+                      className="px-2 py-1 text-[10px] text-slate-400 hover:text-white"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSetWatermark(watermarkVal.trim());
+                        setShowWatermarkInput(false);
+                      }}
+                      className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white font-bold text-[11px] rounded-lg shadow-sm"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Quick Emergency SOS button */}
             <button
